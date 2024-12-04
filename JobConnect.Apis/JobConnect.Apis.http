@@ -1,0 +1,6 @@
+@JobConnect.Apis_HostAddress = http://localhost:5031
+
+GET {{JobConnect.Apis_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
