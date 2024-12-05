@@ -11,10 +11,12 @@ namespace JobConnect.Apis.Controllers
 	public class AccountsController : ControllerBase
 	{
 		private readonly UserManager<User> _userManager;
+		private readonly SignInManager<User> _signInManager;
 
-		public AccountsController(UserManager<User> userManager ) 
+		public AccountsController(UserManager<User> userManager , SignInManager<User> signInManager ) 
 		{
 			_userManager = userManager;
+			_signInManager = signInManager;
 		}
 
 		[HttpPost("Register")]
@@ -37,7 +39,26 @@ namespace JobConnect.Apis.Controllers
 				Token = "This is Token"
 			};
 			return Ok(ReturnedUser);
-			}
+			
+		}
+
+		[HttpPost("Login")]
+		public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+		{
+			var User = await _userManager.FindByEmailAsync(loginDto.Email);
+			if (User == null) return Unauthorized();
+			var Result = await _signInManager.CheckPasswordSignInAsync(User, loginDto.Password ,false);
+			if (!Result.Succeeded) return Unauthorized();
+			var ReturnedUser = new UserDto()
+			{
+				Name = User.UserName,
+				Email = User.Email,
+				Token = "This is Token"
+			};
+			return Ok(ReturnedUser);
+
+		}
+
 
 
 	}
