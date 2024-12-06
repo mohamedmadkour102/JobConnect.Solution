@@ -1,5 +1,6 @@
 ﻿using JobConnect.Apis.DTO_s;
 using JobConnect.Core.Models;
+using JobConnect.Core.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,16 @@ namespace JobConnect.Apis.Controllers
 	{
 		private readonly UserManager<User> _userManager;
 		private readonly SignInManager<User> _signInManager;
+		private readonly ITokenServices _tokenServices;
 
-		public AccountsController(UserManager<User> userManager , SignInManager<User> signInManager ) 
+		public AccountsController(UserManager<User> userManager , SignInManager<User> signInManager 
+			, ITokenServices tokenServices
+			
+			) 
 		{
 			_userManager = userManager;
 			_signInManager = signInManager;
+			_tokenServices = tokenServices;
 		}
 
 		[HttpPost("Register")]
@@ -32,11 +38,11 @@ namespace JobConnect.Apis.Controllers
 			};
 			var result = await _userManager.CreateAsync(User, registerDto.Password);
 			if (!result.Succeeded) return BadRequest(result);
-			var ReturnedUser = new UserDto() 
+			var ReturnedUser = new UserDto()
 			{
 				Name = $"{registerDto.FirstName} {registerDto.LastName}",
 				Email = registerDto.Email,
-				Token = "This is Token"
+				Token = await _tokenServices.CreateTokenAsync(User)
 			};
 			return Ok(ReturnedUser);
 			
@@ -53,12 +59,12 @@ namespace JobConnect.Apis.Controllers
 			{
 				Name = User.UserName,
 				Email = User.Email,
-				Token = "This is Token"
+				Token = await _tokenServices.CreateTokenAsync(User)
 			};
 			return Ok(ReturnedUser);
 
 		}
-
+ 
 
 
 	}

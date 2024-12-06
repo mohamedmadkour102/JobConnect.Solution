@@ -1,5 +1,8 @@
 using JobConnect.Core.Models;
+using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
+using JobConnect.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,13 +20,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-}); 
+});
+
+builder.Services.AddScoped<ITokenServices, TokenServices>();
 #endregion
 
 #region Identity
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
-builder.Services.AddAuthentication(); 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(); 
 #endregion
 
 var app = builder.Build();
