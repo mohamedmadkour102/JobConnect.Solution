@@ -5,12 +5,10 @@ using JobConnect.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 #region DI
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -23,39 +21,44 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 #endregion
 
 #region Identity
-builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddIdentity<User, IdentityRole>()
+	.AddEntityFrameworkStores<AppDbContext>()
+	.AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(); 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+	.AddJwtBearer();
+#endregion
+
+#region EmailSettings
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 #endregion
 
 var app = builder.Build();
+
+// Migrate database and seed default user
 #region Migration
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+var _dbContext = services.GetRequiredService<AppDbContext>();
 
-using var Scope = app.Services.CreateScope();
-var Services = Scope.ServiceProvider;
-// Ask CLR for creating object from dbcontext explicitly
-var _dbContext = Services.GetRequiredService<AppDbContext>();
-
-var LoggerFactory = Services.GetRequiredService<ILoggerFactory>();
+var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
 try
 {
 	await _dbContext.Database.MigrateAsync();
-	var UserManager = Services.GetRequiredService<UserManager<User>>();
-	await AppDbContextSeed.SeedUserAsync(UserManager);
+	var userManager = services.GetRequiredService<UserManager<User>>();
+	await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
-	var Logger = LoggerFactory.CreateLogger<Program>();
-	Logger.LogError(ex, "An error occurred while applying the migration");
+	var logger = loggerFactory.CreateLogger<Program>();
+	logger.LogError(ex, "An error occurred while applying the migration");
 }
 #endregion
-
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -71,3 +74,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

@@ -1,9 +1,11 @@
 ﻿using JobConnect.Apis.DTO_s;
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace JobConnect.Apis.Controllers
 {
@@ -14,21 +16,20 @@ namespace JobConnect.Apis.Controllers
 		private readonly UserManager<User> _userManager;
 		private readonly SignInManager<User> _signInManager;
 		private readonly ITokenServices _tokenServices;
+		private readonly IEmailService _emailService;
 
-		public AccountsController(UserManager<User> userManager , SignInManager<User> signInManager 
-			, ITokenServices tokenServices
-			
-			) 
+		public AccountsController(UserManager<User> userManager, SignInManager<User> signInManager, ITokenServices tokenServices, IEmailService emailService)
 		{
 			_userManager = userManager;
 			_signInManager = signInManager;
 			_tokenServices = tokenServices;
+			_emailService = emailService;
 		}
 
 		[HttpPost("Register")]
 		public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
 		{
-			var User = new User()
+			var user = new User()
 			{
 				FirstName = registerDto.FirstName,
 				LastName = registerDto.LastName,
@@ -36,36 +37,70 @@ namespace JobConnect.Apis.Controllers
 				PhoneNumber = registerDto.PhoneNumber,
 				UserName = registerDto.Email.Split('@')[0]
 			};
-			var result = await _userManager.CreateAsync(User, registerDto.Password);
+
+			var result = await _userManager.CreateAsync(user, registerDto.Password);
 			if (!result.Succeeded) return BadRequest(result);
-			var ReturnedUser = new UserDto()
+
+			var returnedUser = new UserDto()
 			{
 				Name = $"{registerDto.FirstName} {registerDto.LastName}",
 				Email = registerDto.Email,
-				Token = await _tokenServices.CreateTokenAsync(User)
+				Token = await _tokenServices.CreateTokenAsync(user)
 			};
-			return Ok(ReturnedUser);
-			
+
+			return Ok(returnedUser);
 		}
 
 		[HttpPost("Login")]
 		public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 		{
-			var User = await _userManager.FindByEmailAsync(loginDto.Email);
-			if (User == null) return Unauthorized();
-			var Result = await _signInManager.CheckPasswordSignInAsync(User, loginDto.Password ,false);
-			if (!Result.Succeeded) return Unauthorized();
-			var ReturnedUser = new UserDto()
+			var user = await _userManager.FindByEmailAsync(loginDto.Email);
+			if (user == null) return Unauthorized();
+
+			var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+			if (!result.Succeeded) return Unauthorized();
+
+			var returnedUser = new UserDto()
 			{
-				Name = User.UserName,
-				Email = User.Email,
-				Token = await _tokenServices.CreateTokenAsync(User)
+				Name = user.UserName,
+				Email = user.Email,
+				Token = await _tokenServices.CreateTokenAsync(user)
 			};
-			return Ok(ReturnedUser);
 
+			return Ok(returnedUser);
 		}
- 
 
+		[HttpPost("ForgotPassword")]
+		public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)
+		{
+			var user = await _userManager.FindByEmailAsync(request.Email);
+			if (user == null)
+				return BadRequest("Email not found");
 
+			var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+			// تحديد الـ URL هنا مباشرة في الكود
+			var resetLink = $"https://your-client-url.com/reset-password?token={token}&email={request.Email}";
+
+			// Send email with the reset link
+			await _emailService.SendEmailAsync(user.Email, "Password Reset", $"Click the link to reset your password: {resetLink}");
+
+			return Ok("Password reset email sent.");
+		}
+
+		// API to handle reset password
+		[HttpPost("ResetPassword")]
+		public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
+		{
+			var user = await _userManager.FindByEmailAsync(request.Email);
+			if (user == null)
+				return BadRequest("Invalid email address");
+
+			var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+			if (!result.Succeeded)
+				return BadRequest("Password reset failed");
+
+			return Ok("Password has been reset successfully");
+		}
 	}
 }
