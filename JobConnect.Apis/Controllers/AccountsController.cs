@@ -80,7 +80,7 @@ namespace JobConnect.Apis.Controllers
 			var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
 			// تحديد الـ URL هنا مباشرة في الكود
-			var resetLink = $"https://your-client-url.com/reset-password?token={token}&email={request.Email}";
+			var resetLink = $"https://yourapp.com/reset-password?email={user.Email}&token={token}";
 
 			// Send email with the reset link
 			await _emailService.SendEmailAsync(user.Email, "Password Reset", $"Click the link to reset your password: {resetLink}");
