@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobConnect.Repository.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241203230107_addidentity")]
-    partial class addidentity
+    [Migration("20250203232750_newdatabase")]
+    partial class newdatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -96,6 +96,8 @@ namespace JobConnect.Repository.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -231,6 +233,59 @@ namespace JobConnect.Repository.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("JobConnect.Core.Models.Employer", b =>
+                {
+                    b.HasBaseType("JobConnect.Core.Models.User");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanySize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Industry")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("Employers", (string)null);
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeeker", b =>
+                {
+                    b.HasBaseType("JobConnect.Core.Models.User");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CurrentOrDesiredJob")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Degree")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
+
+                    b.ToTable("JobSeekers", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -278,6 +333,24 @@ namespace JobConnect.Repository.Data.Migrations
                     b.HasOne("JobConnect.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.Employer", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.User", null)
+                        .WithOne()
+                        .HasForeignKey("JobConnect.Core.Models.Employer", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeeker", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.User", null)
+                        .WithOne()
+                        .HasForeignKey("JobConnect.Core.Models.JobSeeker", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

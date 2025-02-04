@@ -26,29 +26,72 @@ namespace JobConnect.Apis.Controllers
 			_emailService = emailService;
 		}
 
-		[HttpPost("Register")]
-		public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+		[HttpPost("Register/Employer")]
+		public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
 		{
-			var user = new User()
+			// إنشاء Employer مع البيانات الإضافية
+			var employer = new Employer()
 			{
 				FirstName = registerDto.FirstName,
 				LastName = registerDto.LastName,
 				Email = registerDto.Email,
 				PhoneNumber = registerDto.PhoneNumber,
-				UserName = registerDto.Email.Split('@')[0]
+				UserName = registerDto.Email.Split('@')[0],
+				CompanyName = registerDto.CompanyName,
+				CompanySize = registerDto.CompanySize,
+				Website = registerDto.Website,
+				Industry = registerDto.Industry,
+				Address = registerDto.Address,
+				CompanyDescription = registerDto.CompanyDescription
 			};
 
-			var result = await _userManager.CreateAsync(user, registerDto.Password);
-			if (!result.Succeeded) return BadRequest(result);
+			var result = await _userManager.CreateAsync(employer, registerDto.Password);
+			if (!result.Succeeded) return BadRequest(result.Errors);
 
-			var returnedUser = new UserDto()
+			// تعيين رول "Employer"
+			await _userManager.AddToRoleAsync(employer, "Employer");
+
+			// إرجاع البيانات مع الرول
+			return new UserDto
 			{
-				Name = $"{registerDto.FirstName} {registerDto.LastName}",
+				Name = $"{employer.FirstName} {employer.LastName}",
+				Email = employer.Email,
+				Token = await _tokenServices.CreateTokenAsync(employer),
+				Role = "Employer"
+			};
+		}
+
+		[HttpPost("Register/JobSeeker")]
+		public async Task<ActionResult<UserDto>> RegisterJobSeeker(JobSeekerRegistrationDto registerDto)
+		{
+			// إنشاء JobSeeker مع البيانات الإضافية
+			var jobSeeker = new JobSeeker()
+			{
+				FirstName = registerDto.FirstName,
+				LastName = registerDto.LastName,
 				Email = registerDto.Email,
-				Token = await _tokenServices.CreateTokenAsync(user)
+				PhoneNumber = registerDto.PhoneNumber,
+				UserName = registerDto.Email.Split('@')[0],
+				Address = registerDto.Address,
+				YearsOfExperience = registerDto.YearsOfExperience,
+				Degree = registerDto.Degree,
+				CurrentOrDesiredJob = registerDto.CurrentOrDesiredJob
 			};
 
-			return Ok(returnedUser);
+			var result = await _userManager.CreateAsync(jobSeeker, registerDto.Password);
+			if (!result.Succeeded) return BadRequest(result.Errors);
+
+			// تعيين رول "JobSeeker"
+			await _userManager.AddToRoleAsync(jobSeeker, "JobSeeker");
+
+			// إرجاع البيانات مع الرول
+			return new UserDto
+			{
+				Name = $"{jobSeeker.FirstName} {jobSeeker.LastName}",
+				Email = jobSeeker.Email,
+				Token = await _tokenServices.CreateTokenAsync(jobSeeker),
+				Role = "JobSeeker"
+			};
 		}
 
 		[HttpPost("Login")]
@@ -60,14 +103,17 @@ namespace JobConnect.Apis.Controllers
 			var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 			if (!result.Succeeded) return Unauthorized();
 
-			var returnedUser = new UserDto()
-			{
-				Name = user.UserName,
-				Email = user.Email,
-				Token = await _tokenServices.CreateTokenAsync(user)
-			};
+			// الحصول على الرول الخاص بالمستخدم
+			var roles = await _userManager.GetRolesAsync(user);
+			var role = roles.FirstOrDefault();
 
-			return Ok(returnedUser);
+			return new UserDto
+			{
+				Name = $"{user.FirstName} {user.LastName}",
+				Email = user.Email,
+				Token = await _tokenServices.CreateTokenAsync(user),
+				Role = role
+			};
 		}
 
 		[HttpPost("ForgotPassword")]
