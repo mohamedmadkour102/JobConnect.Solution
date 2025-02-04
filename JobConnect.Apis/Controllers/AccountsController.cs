@@ -51,7 +51,7 @@ namespace JobConnect.Apis.Controllers
 			// تعيين رول "Employer"
 			await _userManager.AddToRoleAsync(employer, "Employer");
 
-			// إرجاع البيانات مع الرول
+	
 			return new UserDto
 			{
 				Name = $"{employer.FirstName} {employer.LastName}",
