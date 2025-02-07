@@ -29,7 +29,7 @@ namespace JobConnect.Apis.Controllers
 		[HttpPost("Register/Employer")]
 		public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
 		{
-			// إنشاء Employer مع البيانات الإضافية
+			
 			var employer = new Employer()
 			{
 				FirstName = registerDto.FirstName,
@@ -48,7 +48,7 @@ namespace JobConnect.Apis.Controllers
 			var result = await _userManager.CreateAsync(employer, registerDto.Password);
 			if (!result.Succeeded) return BadRequest(result.Errors);
 
-			// تعيين رول "Employer"
+			
 			await _userManager.AddToRoleAsync(employer, "Employer");
 
 	
@@ -64,7 +64,7 @@ namespace JobConnect.Apis.Controllers
 		[HttpPost("Register/JobSeeker")]
 		public async Task<ActionResult<UserDto>> RegisterJobSeeker(JobSeekerRegistrationDto registerDto)
 		{
-			// إنشاء JobSeeker مع البيانات الإضافية
+			
 			var jobSeeker = new JobSeeker()
 			{
 				FirstName = registerDto.FirstName,
@@ -81,7 +81,7 @@ namespace JobConnect.Apis.Controllers
 			var result = await _userManager.CreateAsync(jobSeeker, registerDto.Password);
 			if (!result.Succeeded) return BadRequest(result.Errors);
 
-			// تعيين رول "JobSeeker"
+			
 			await _userManager.AddToRoleAsync(jobSeeker, "JobSeeker");
 
 			
@@ -103,7 +103,7 @@ namespace JobConnect.Apis.Controllers
 			var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 			if (!result.Succeeded) return Unauthorized();
 
-			// الحصول على الرول الخاص بالمستخدم
+			
 			var roles = await _userManager.GetRolesAsync(user);
 			var role = roles.FirstOrDefault();
 
@@ -125,16 +125,16 @@ namespace JobConnect.Apis.Controllers
 
 			var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-			// تحديد الـ URL هنا مباشرة في الكود
+	
 			var resetLink = $"https://yourapp.com/reset-password?email={user.Email}&token={token}";
 
-			// Send email with the reset link
+			
 			await _emailService.SendEmailAsync(user.Email, "Password Reset", $"Click the link to reset your password: {resetLink}");
 
 			return Ok("Password reset email sent.");
 		}
 
-		// API to handle reset password
+		
 		[HttpPost("ResetPassword")]
 		public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto request)
 		{
