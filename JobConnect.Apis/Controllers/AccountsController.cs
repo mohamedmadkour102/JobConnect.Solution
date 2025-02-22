@@ -26,39 +26,80 @@ namespace JobConnect.Apis.Controllers
 			_emailService = emailService;
 		}
 
+		//[HttpPost("Register/Employer")]
+		//public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
+		//{
+
+		//	var employer = new Employer()
+		//	{
+		//		FirstName = registerDto.FirstName,
+		//		LastName = registerDto.LastName,
+		//		Email = registerDto.Email,
+		//		PhoneNumber = registerDto.PhoneNumber,
+		//		UserName = registerDto.Email.Split('@')[0],
+		//		CompanyName = registerDto.CompanyName,
+		//		CompanySize = registerDto.CompanySize,
+		//		Website = registerDto.Website,
+		//		Industry = registerDto.Industry,
+		//		Address = registerDto.Address,
+		//		CompanyDescription = registerDto.CompanyDescription
+		//	};
+
+		//	var result = await _userManager.CreateAsync(employer, registerDto.Password);
+		//	if (!result.Succeeded) return BadRequest(result.Errors);
+
+
+		//	await _userManager.AddToRoleAsync(employer, "Employer");
+
+
+		//	return new UserDto
+		//	{
+		//		Name = $"{employer.FirstName} {employer.LastName}",
+		//		Email = employer.Email,
+		//		Token = await _tokenServices.CreateTokenAsync(employer),
+		//		Role = "Employer"
+		//	};
+		//}
 		[HttpPost("Register/Employer")]
 		public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
 		{
-			
-			var employer = new Employer()
+			try
 			{
-				FirstName = registerDto.FirstName,
-				LastName = registerDto.LastName,
-				Email = registerDto.Email,
-				PhoneNumber = registerDto.PhoneNumber,
-				UserName = registerDto.Email.Split('@')[0],
-				CompanyName = registerDto.CompanyName,
-				CompanySize = registerDto.CompanySize,
-				Website = registerDto.Website,
-				Industry = registerDto.Industry,
-				Address = registerDto.Address,
-				CompanyDescription = registerDto.CompanyDescription
-			};
+				var employer = new Employer
+				{
+					FirstName = registerDto.FirstName,
+					LastName = registerDto.LastName,
+					Email = registerDto.Email,
+					PhoneNumber = registerDto.PhoneNumber,
+					UserName = registerDto.Email.Split('@')[0],
+					CompanyName = registerDto.CompanyName,
+					CompanySize = registerDto.CompanySize,
+					Website = registerDto.Website,
+					Industry = registerDto.Industry,
+					Address = registerDto.Address,
+					CompanyDescription = registerDto.CompanyDescription
+				};
 
-			var result = await _userManager.CreateAsync(employer, registerDto.Password);
-			if (!result.Succeeded) return BadRequest(result.Errors);
+				var result = await _userManager.CreateAsync(employer, registerDto.Password);
+				if (!result.Succeeded)
+					return BadRequest(result.Errors);
 
-			
-			await _userManager.AddToRoleAsync(employer, "Employer");
+				await _userManager.AddToRoleAsync(employer, "Employer");
 
-	
-			return new UserDto
+				var userDto = new UserDto
+				{
+					Name = $"{employer.FirstName} {employer.LastName}",
+					Email = employer.Email,
+					Token = await _tokenServices.CreateTokenAsync(employer),
+					Role = "Employer"
+				};
+
+				return Ok(userDto);
+			}
+			catch (Exception ex)
 			{
-				Name = $"{employer.FirstName} {employer.LastName}",
-				Email = employer.Email,
-				Token = await _tokenServices.CreateTokenAsync(employer),
-				Role = "Employer"
-			};
+				return StatusCode(500, $"An error occurred: {ex.Message}");
+			}
 		}
 
 		[HttpPost("Register/JobSeeker")]
@@ -98,23 +139,29 @@ namespace JobConnect.Apis.Controllers
 		public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
 		{
 			var user = await _userManager.FindByEmailAsync(loginDto.Email);
-			if (user == null) return Unauthorized();
+			if (user == null)
+			{
+				return Unauthorized(new { message = "Invalid email or password" });
+			}
 
 			var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-			if (!result.Succeeded) return Unauthorized();
+			if (!result.Succeeded)
+			{
+				return Unauthorized(new { message = "Incorrect password" });
+			}
 
-			
 			var roles = await _userManager.GetRolesAsync(user);
 			var role = roles.FirstOrDefault();
 
-			return new UserDto
+			return Ok(new UserDto
 			{
 				Name = $"{user.FirstName} {user.LastName}",
 				Email = user.Email,
 				Token = await _tokenServices.CreateTokenAsync(user),
 				Role = role
-			};
+			});
 		}
+
 
 		[HttpPost("ForgotPassword")]
 		public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto request)

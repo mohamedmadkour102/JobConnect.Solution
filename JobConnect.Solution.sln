@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobConnect.Apis", "JobConnect.Apis\JobConnect.Apis.csproj", "{758C98BD-BC21-48B7-BB49-9300CF12C9BE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobConnect.Core", "JobConnect.Core\JobConnect.Core.csproj", "{CF94C320-FB05-4B91-9261-16925143C7F2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobConnect.Repository", "JobConnect.Repository\JobConnect.Repository.csproj", "{B7E15C45-D885-44F0-AEDD-02200E2B3F56}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobConnect.Services", "JobConnect.Services\JobConnect.Services.csproj", "{344C6860-4FC6-45B3-B4BE-3F677FCBFF4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JobConnect.Apis", "JobConnect.Apis\JobConnect.Apis.csproj", "{758C98BD-BC21-48B7-BB49-9300CF12C9BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +15,6 @@ Global
 		{758C98BD-BC21-48B7-BB49-9300CF12C9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{758C98BD-BC21-48B7-BB49-9300CF12C9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{758C98BD-BC21-48B7-BB49-9300CF12C9BE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CF94C320-FB05-4B91-9261-16925143C7F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CF94C320-FB05-4B91-9261-16925143C7F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CF94C320-FB05-4B91-9261-16925143C7F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CF94C320-FB05-4B91-9261-16925143C7F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7E15C45-D885-44F0-AEDD-02200E2B3F56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7E15C45-D885-44F0-AEDD-02200E2B3F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7E15C45-D885-44F0-AEDD-02200E2B3F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7E15C45-D885-44F0-AEDD-02200E2B3F56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{344C6860-4FC6-45B3-B4BE-3F677FCBFF4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{344C6860-4FC6-45B3-B4BE-3F677FCBFF4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{344C6860-4FC6-45B3-B4BE-3F677FCBFF4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{344C6860-4FC6-45B3-B4BE-3F677FCBFF4C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

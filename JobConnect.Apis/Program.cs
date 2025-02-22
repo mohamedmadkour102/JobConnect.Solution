@@ -1,10 +1,11 @@
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
-using JobConnect.Services;
+using JobConnect.Apis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using JobConnect.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +67,16 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+//if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+//{
+//	app.UseSwagger();
+//	app.UseSwaggerUI(options =>
+//	{
+//		options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+//		options.RoutePrefix = string.Empty; // «Ã⁄· Swagger ›Ì «·„”«— «·—∆Ì”Ì («Œ Ì«—Ì)
+//	});
+//}
+
 
 app.UseHttpsRedirection();
 

@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace JobConnect.Repository.Data.Migrations
+namespace JobConnect.Repository.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250203232750_newdatabase")]
-    partial class newdatabase
+    [Migration("20250215204655_createdatabase")]
+    partial class createdatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

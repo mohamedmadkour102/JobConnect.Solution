@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace JobConnect.Repository.Data.Migrations
+namespace JobConnect.Apis.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class newdatabase : Migration
+    public partial class Createdatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
