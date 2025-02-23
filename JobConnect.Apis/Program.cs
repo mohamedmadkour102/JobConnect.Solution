@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using JobConnect.Services;
+using JobConnect.Apis.IRepository;
+using JobConnect.Apis.Repository;
+using JobConnect.Apis.IService;
+using JobConnect.Apis.Services.JobService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +27,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IJobRepository , JobRepository>();
+builder.Services.AddScoped<IJobService , JobService>();
 #endregion
 
 #region Identity

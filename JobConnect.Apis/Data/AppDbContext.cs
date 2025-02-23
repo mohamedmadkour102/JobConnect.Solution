@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using JobConnect.Apis;
+using JobConnect.Apis.Models;
 
 namespace JobConnect.Repository.Data
 {
@@ -13,6 +14,8 @@ namespace JobConnect.Repository.Data
 
 		public DbSet<JobSeeker> JobSeekers { get; set; }
 		public DbSet<Employer> Employers { get; set; }
+		public DbSet<Job> Jobs { get; set; }
+		public DbSet<Application> Applications {  get; set; }		
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder) 
 		{
@@ -21,7 +24,15 @@ namespace JobConnect.Repository.Data
 			modelBuilder.Entity<Employer>().ToTable("Employers");
 			modelBuilder.Entity<JobSeeker>().ToTable("JobSeekers");
 
+			modelBuilder.Entity<Application>()
+	.HasOne(a => a.Job)
+	.WithMany(j => j.Applications)
+	.HasForeignKey(a => a.JobId);
 
+			modelBuilder.Entity<Application>()
+	.HasOne(a => a.JobSeeker)
+	.WithMany(c => c.Applications)
+	.HasForeignKey(a => a.JobSeekerId);
 			modelBuilder.Entity<Employer>(e =>
 			{
 				e.Property(em => em.CompanyName).IsRequired();
