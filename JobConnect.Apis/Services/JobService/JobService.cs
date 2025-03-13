@@ -79,6 +79,7 @@ namespace JobConnect.Apis.Services.JobService
 				ExpirationDate = jobDto.ExpirationDate,
 				JobType = jobDto.JobType,
 				Description = jobDto.Description,
+				Status = jobDto.Status,
 
 			};
 
@@ -103,7 +104,7 @@ namespace JobConnect.Apis.Services.JobService
 			job.Vacancies = jobDto.Vacancies;
 			job.ExpirationDate = jobDto.ExpirationDate;
 			job.JobType = jobDto.JobType;
-
+			job.Status = jobDto.Status;
 
 
 			await _jobRepository.UpdateJobAsync(job);

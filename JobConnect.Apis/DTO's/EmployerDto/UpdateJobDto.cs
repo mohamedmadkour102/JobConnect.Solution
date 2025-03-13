@@ -14,6 +14,8 @@
 		public int Vacancies { get; set; }
 		public DateTime ExpirationDate { get; set; }
 		public string JobType { get; set; }
+		public string Status { get; set; }
+
 	}
 
 }
