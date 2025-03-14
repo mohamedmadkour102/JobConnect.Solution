@@ -16,7 +16,7 @@ namespace JobConnect.Apis.DTO_s
 		[Required]
 		public string Password { get; set; }
 
-		// Employer-specific properties
+		
 		public string CompanyName { get; set; }
 		public string CompanySize { get; set; }
 		public string Website { get; set; }

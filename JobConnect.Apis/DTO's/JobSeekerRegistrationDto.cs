@@ -16,7 +16,7 @@ namespace JobConnect.Apis.DTO_s
 		[Required]
 		public string Password { get; set; }
 
-		// JobSeeker-specific properties
+		
 		public string Address { get; set; }
 		public int? YearsOfExperience { get; set; }
 		public string Degree { get; set; }

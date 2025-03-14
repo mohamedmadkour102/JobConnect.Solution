@@ -22,7 +22,7 @@ namespace JobConnect.Services
 		{
 			var emailMessage = new MimeMessage();
 			emailMessage.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
-			emailMessage.To.Add(new MailboxAddress("", toEmail)); // لا حاجة لإضافة اسم للمستلم، فسيتم استخدام البريد الإلكتروني فقط
+			emailMessage.To.Add(new MailboxAddress("", toEmail)); 
 
 			emailMessage.Subject = subject;
 

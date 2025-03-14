@@ -27,7 +27,7 @@ namespace JobConnect.Services
 
 		public async Task<string> CreateTokenAsync(User user)
 		{
-			// إعداد الـ Claims الأساسية
+			
 			var authClaims = new List<Claim>()
 			{
 				new Claim(ClaimTypes.GivenName, user.UserName),
@@ -36,23 +36,22 @@ namespace JobConnect.Services
 				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
 			};
 
-			// إضافة الرولز إلى الـ Claims
+			
 			var userRoles = await _userManager.GetRolesAsync(user);
 			foreach (var role in userRoles)
 			{
 				authClaims.Add(new Claim(ClaimTypes.Role, role));
 			}
 
-			// إنشاء مفتاح التشفير
+		
 			var authKey = new SymmetricSecurityKey(
 				Encoding.UTF8.GetBytes(_configuration["JWT:Key"]));
 
-			// إنشاء الـ Token
 			var token = new JwtSecurityToken(
 				issuer: _configuration["JWT:ValidIssuer"],
 				audience: _configuration["JWT:ValidAudience"],
 expires: DateTime.Now.AddDays(
-	double.Parse(_configuration["JWT:DurationInDays"]) // التأكد من تطابق الاسم
+	double.Parse(_configuration["JWT:DurationInDays"]) 
 ),
 				claims: authClaims,
 				signingCredentials: new SigningCredentials(
