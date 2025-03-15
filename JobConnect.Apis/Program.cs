@@ -68,18 +68,26 @@ catch (Exception ex)
 #endregion
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// if (app.Environment.IsDevelopment())
+// {
+// 	app.UseSwagger();
+// 	app.UseSwaggerUI();
+// }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
+    c.RoutePrefix = string.Empty; // shows Swagger UI at root
+});
+
 //if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 //{
 //	app.UseSwagger();
 //	app.UseSwaggerUI(options =>
 //	{
 //		options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-//		options.RoutePrefix = string.Empty; // ╟╠┌с Swagger ▌э ╟су╙╟╤ ╟с╤╞э╙э (╟╬╩э╟╤э)
+//		options.RoutePrefix = string.Empty; // я┐╜я┐╜я┐╜я┐╜ Swagger я┐╜я┐╜ я┐╜я┐╜я┐╜я┐╜я┐╜я┐╜ я┐╜я┐╜я┐╜я┐╜я┐╜я┐╜я┐╜ (я┐╜я┐╜я┐╜я┐╜я┐╜я┐╜я┐╜)
 //	});
 //}
 
