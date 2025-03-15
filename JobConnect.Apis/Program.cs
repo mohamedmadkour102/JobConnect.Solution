@@ -22,22 +22,22 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IJobRepository , JobRepository>();
-builder.Services.AddScoped<IJobService , JobService>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IJobService, JobService>();
 #endregion
 
 #region Identity
 builder.Services.AddIdentity<User, IdentityRole>()
-	.AddEntityFrameworkStores<AppDbContext>()
-	.AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer();
+    .AddJwtBearer();
 #endregion
 
 #region EmailSettings
@@ -56,30 +56,38 @@ var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
 try
 {
-	await _dbContext.Database.MigrateAsync();
-	var userManager = services.GetRequiredService<UserManager<User>>();
-	await AppDbContextSeed.SeedUserAsync(userManager);
+    await _dbContext.Database.MigrateAsync();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
-	var logger = loggerFactory.CreateLogger<Program>();
-	logger.LogError(ex, "An error occurred while applying the migration");
+    var logger = loggerFactory.CreateLogger<Program>();
+    logger.LogError(ex, "An error occurred while applying the migration");
 }
 #endregion
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// if (app.Environment.IsDevelopment())
+// {
+// 	app.UseSwagger();
+// 	app.UseSwaggerUI();
+// }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
+    c.RoutePrefix = string.Empty; // shows Swagger UI at root
+});
+
 //if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 //{
 //	app.UseSwagger();
 //	app.UseSwaggerUI(options =>
 //	{
 //		options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-//		options.RoutePrefix = string.Empty; // «Ã⁄· Swagger ›Ì «·„”«— «·—∆Ì”Ì («Œ Ì«—Ì)
+//		options.RoutePrefix = string.Empty; // ???? Swagger ?? ?????? ??????? (???????)
 //	});
 //}
 
@@ -91,4 +99,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
