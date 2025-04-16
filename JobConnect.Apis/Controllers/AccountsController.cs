@@ -26,40 +26,7 @@ namespace JobConnect.Apis.Controllers
 			_emailService = emailService;
 		}
 
-		//[HttpPost("Register/Employer")]
-		//public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
-		//{
 
-		//	var employer = new Employer()
-		//	{
-		//		FirstName = registerDto.FirstName,
-		//		LastName = registerDto.LastName,
-		//		Email = registerDto.Email,
-		//		PhoneNumber = registerDto.PhoneNumber,
-		//		UserName = registerDto.Email.Split('@')[0],
-		//		CompanyName = registerDto.CompanyName,
-		//		CompanySize = registerDto.CompanySize,
-		//		Website = registerDto.Website,
-		//		Industry = registerDto.Industry,
-		//		Address = registerDto.Address,
-		//		CompanyDescription = registerDto.CompanyDescription
-		//	};
-
-		//	var result = await _userManager.CreateAsync(employer, registerDto.Password);
-		//	if (!result.Succeeded) return BadRequest(result.Errors);
-
-
-		//	await _userManager.AddToRoleAsync(employer, "Employer");
-
-
-		//	return new UserDto
-		//	{
-		//		Name = $"{employer.FirstName} {employer.LastName}",
-		//		Email = employer.Email,
-		//		Token = await _tokenServices.CreateTokenAsync(employer),
-		//		Role = "Employer"
-		//	};
-		//}
 		[HttpPost("Register/Employer")]
 		public async Task<ActionResult<UserDto>> RegisterEmployer(EmployerRegistrationDto registerDto)
 		{
@@ -84,14 +51,14 @@ namespace JobConnect.Apis.Controllers
 				if (!result.Succeeded)
 					return BadRequest(result.Errors);
 
-				await _userManager.AddToRoleAsync(employer, "Employer");
+				await _userManager.AddToRoleAsync(employer, "employer");
 
 				var userDto = new UserDto
 				{
 					Name = $"{employer.FirstName} {employer.LastName}",
 					Email = employer.Email,
 					Token = await _tokenServices.CreateTokenAsync(employer),
-					Role = "Employer"
+					Role = "employer"
 				};
 
 				return Ok(userDto);
@@ -123,7 +90,7 @@ namespace JobConnect.Apis.Controllers
 			if (!result.Succeeded) return BadRequest(result.Errors);
 
 			
-			await _userManager.AddToRoleAsync(jobSeeker, "JobSeeker");
+			await _userManager.AddToRoleAsync(jobSeeker, "jobSeeker");
 
 			
 			return new UserDto
@@ -131,7 +98,7 @@ namespace JobConnect.Apis.Controllers
 				Name = $"{jobSeeker.FirstName} {jobSeeker.LastName}",
 				Email = jobSeeker.Email,
 				Token = await _tokenServices.CreateTokenAsync(jobSeeker),
-				Role = "JobSeeker"
+				Role = "jobSeeker"
 			};
 		}
 

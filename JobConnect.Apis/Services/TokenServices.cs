@@ -49,14 +49,12 @@ namespace JobConnect.Services
 
 			var token = new JwtSecurityToken(
 				issuer: _configuration["JWT:ValidIssuer"],
-				audience: _configuration["JWT:ValidAudience"],
-expires: DateTime.Now.AddDays(
-	double.Parse(_configuration["JWT:DurationInDays"]) 
-),
+				audience: _configuration["JWT:ValidAudience"], 
+				expires: DateTime.Now.AddDays(double.Parse(_configuration["JWT:DurationInDays"])),
 				claims: authClaims,
-				signingCredentials: new SigningCredentials(
-					authKey, SecurityAlgorithms.HmacSha256Signature)
+				signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256Signature)
 			);
+
 
 			return new JwtSecurityTokenHandler().WriteToken(token);
 		}

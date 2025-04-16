@@ -9,11 +9,15 @@ namespace JobConnect.Apis.Services.JobService
 	{
 		private readonly IJobRepository _jobRepository;
 
+		//public JobService(IJobRepository jobRepository)
+		//{
+		//	_jobRepository = jobRepository;
+		//}
 		public JobService(IJobRepository jobRepository)
 		{
-			_jobRepository = jobRepository;
+			_jobRepository = jobRepository ?? throw new ArgumentNullException(nameof(jobRepository));
+			Console.WriteLine("JobService initialized successfully");
 		}
-
 		public async Task<IEnumerable<JobDto>> GetRecentJobsAsync()
 		{
 			var jobs = await _jobRepository.GetRecentJobsAsync();

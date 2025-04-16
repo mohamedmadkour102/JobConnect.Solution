@@ -4,11 +4,13 @@ using JobConnect.Apis.IService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace JobConnect.Apis.Controllers
 {
 	[Route("api/employer")]
 	[ApiController]
+	//[Authorize(Roles = "employer")]
 	public class EmployerController : ControllerBase
 	{
 		private readonly IJobService _jobService;
@@ -27,6 +29,7 @@ namespace JobConnect.Apis.Controllers
 
 			return Ok(new { message = "Recent jobs retrieved successfully.", data = jobs });
 		}
+		
 
 		[HttpGet("GetAllJobs")]
 		public async Task<IActionResult> GetAllJobs()
