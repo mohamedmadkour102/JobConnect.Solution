@@ -194,10 +194,11 @@ using JobConnect.Services;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.Repository;
 using JobConnect.Apis.IService;
-using JobConnect.Apis.Services.JobService;
+
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using JobConnect.Apis.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -207,27 +208,60 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger with JWT support
+//builder.Services.AddSwaggerGen(c =>
+//{
+//	c.SwaggerDoc("v1", new OpenApiInfo
+//	{
+//		Title = "JobConnect API",
+//		Version = "v1"
+//	});
+
+
+//	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+//	{
+//		Name = "Authorization",
+//		Type = SecuritySchemeType.Http,
+//		Scheme = "bearer",
+//		BearerFormat = "JWT",
+//		In = ParameterLocation.Header,
+//		Description = "Enter your JWT token with the Bearer prefix. Example: Bearer {your token}"
+//	});
+
+
+//	c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+//	{
+//		{
+//			new OpenApiSecurityScheme
+//			{
+//				Reference = new OpenApiReference
+//				{
+//					Type = ReferenceType.SecurityScheme,
+//					Id = "Bearer"
+//				},
+//				Scheme = "Bearer",
+//				Name = "Authorization",
+//				In = ParameterLocation.Header,
+//			},
+//			new List<string>()
+//		}
+//	});
+//});
+
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo
-	{
-		Title = "JobConnect API",
-		Version = "v1"
-	});
+	c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
 
-	
 	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 	{
 		Name = "Authorization",
 		Type = SecuritySchemeType.Http,
-		Scheme = "bearer",
+		Scheme = "Bearer",
 		BearerFormat = "JWT",
 		In = ParameterLocation.Header,
-		Description = "Enter your JWT token with the Bearer prefix. Example: Bearer {your token}"
+		Description = "Enter your JWT token in the format: Bearer {token}"
 	});
 
-	
-	c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+	c.AddSecurityRequirement(new OpenApiSecurityRequirement
 	{
 		{
 			new OpenApiSecurityScheme
@@ -236,15 +270,13 @@ builder.Services.AddSwaggerGen(c =>
 				{
 					Type = ReferenceType.SecurityScheme,
 					Id = "Bearer"
-				},
-				Scheme = "Bearer",
-				Name = "Authorization",
-				In = ParameterLocation.Header,
+				}
 			},
-			new List<string>()
+			new string[] {}
 		}
 	});
 });
+
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -253,9 +285,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IJobRepository, JobRepository>();
-builder.Services.AddScoped<IJobService, JobService>();
+//builder.Services.AddScoped<IJobRepository, JobRepository>();
+//builder.Services.AddScoped<IJobService, JobService>();
+builder.Services.AddScoped<IEmployerService , EmployerService>();
+builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
+builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
+builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
+
+
 #endregion
 
 #region Identity
@@ -266,21 +305,43 @@ builder.Services.AddIdentity<User, IdentityRole>()
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //	.AddJwtBearer();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer(options =>
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//	.AddJwtBearer(options =>
+//	{
+//		options.TokenValidationParameters = new TokenValidationParameters
+//		{
+//			ValidateIssuer = true,
+//			ValidateAudience = true,
+//			ValidateLifetime = true,
+//			ValidateIssuerSigningKey = true,
+//			ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+//			ValidAudience = builder.Configuration["JWT:ValidAudience"],
+//			IssuerSigningKey = new SymmetricSecurityKey(
+//				Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+//		};
+//	});
+
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+	options.TokenValidationParameters = new TokenValidationParameters
 	{
-		options.TokenValidationParameters = new TokenValidationParameters
-		{
-			ValidateIssuer = true,
-			ValidateAudience = true,
-			ValidateLifetime = true,
-			ValidateIssuerSigningKey = true,
-			ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-			ValidAudience = builder.Configuration["JWT:ValidAudience"],
-			IssuerSigningKey = new SymmetricSecurityKey(
-				Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
-		};
-	});
+		ValidateIssuer = true,
+		ValidateAudience = true,
+		ValidateLifetime = true,
+		ValidateIssuerSigningKey = true,
+		ValidIssuer = builder.Configuration["Jwt:Issuer"],
+		ValidAudience = builder.Configuration["Jwt:Audience"],
+		IssuerSigningKey = new SymmetricSecurityKey(
+			Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+	};
+});
 
 #endregion
 
@@ -329,9 +390,9 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+//app.UseCors("AllowFrontend");
 app.UseAuthentication(); 
 app.UseAuthorization();
 

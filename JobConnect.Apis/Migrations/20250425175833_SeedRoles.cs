@@ -2,14 +2,14 @@
 
 #nullable disable
 
-namespace JobConnect.Apis.Data.Migrations
+namespace JobConnect.Apis.Migrations
 {
     /// <inheritdoc />
     public partial class SeedRoles : Migration
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+		/// <inheritdoc />
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
 			migrationBuilder.InsertData(
 	table: "AspNetRoles",
 	columns: new[] { "Id", "Name", "NormalizedName", "ConcurrencyStamp" },
@@ -22,9 +22,9 @@ namespace JobConnect.Apis.Data.Migrations
 			);
 		}
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+		/// <inheritdoc />
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
 			migrationBuilder.DeleteData(
    table: "AspNetRoles",
    keyColumn: "Name",
@@ -36,5 +36,5 @@ namespace JobConnect.Apis.Data.Migrations
 			   keyValue: "jobseeker"
 		   );
 		}
-    }
+	}
 }

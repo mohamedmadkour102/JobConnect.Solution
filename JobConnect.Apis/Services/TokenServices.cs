@@ -27,9 +27,10 @@ namespace JobConnect.Services
 
 		public async Task<string> CreateTokenAsync(User user)
 		{
-			
+
 			var authClaims = new List<Claim>()
 			{
+				new Claim (ClaimTypes.NameIdentifier , user.Id),
 				new Claim(ClaimTypes.GivenName, user.UserName),
 				new Claim(ClaimTypes.Email, user.Email),
 				new Claim("fullName", $"{user.FirstName} {user.LastName}"),
@@ -54,7 +55,6 @@ namespace JobConnect.Services
 				claims: authClaims,
 				signingCredentials: new SigningCredentials(authKey, SecurityAlgorithms.HmacSha256Signature)
 			);
-
 
 			return new JwtSecurityTokenHandler().WriteToken(token);
 		}
