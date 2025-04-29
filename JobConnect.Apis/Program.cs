@@ -249,39 +249,39 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
 
-	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-	{
-		Name = "Authorization",
-		Type = SecuritySchemeType.Http,
-		Scheme = "Bearer",
-		BearerFormat = "JWT",
-		In = ParameterLocation.Header,
-		Description = "Enter your JWT token in the format: Bearer {token}"
-	});
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token in the format: Bearer {token}"
+    });
 
-	c.AddSecurityRequirement(new OpenApiSecurityRequirement
-	{
-		{
-			new OpenApiSecurityScheme
-			{
-				Reference = new OpenApiReference
-				{
-					Type = ReferenceType.SecurityScheme,
-					Id = "Bearer"
-				}
-			},
-			new string[] {}
-		}
-	});
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
@@ -289,7 +289,7 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 //builder.Services.AddScoped<IJobRepository, JobRepository>();
 //builder.Services.AddScoped<IJobService, JobService>();
-builder.Services.AddScoped<IEmployerService , EmployerService>();
+builder.Services.AddScoped<IEmployerService, EmployerService>();
 builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
@@ -299,8 +299,8 @@ builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 
 #region Identity
 builder.Services.AddIdentity<User, IdentityRole>()
-	.AddEntityFrameworkStores<AppDbContext>()
-	.AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //	.AddJwtBearer();
@@ -325,22 +325,22 @@ builder.Services.AddIdentity<User, IdentityRole>()
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
-	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-	options.TokenValidationParameters = new TokenValidationParameters
-	{
-		ValidateIssuer = true,
-		ValidateAudience = true,
-		ValidateLifetime = true,
-		ValidateIssuerSigningKey = true,
-		ValidIssuer = builder.Configuration["Jwt:Issuer"],
-		ValidAudience = builder.Configuration["Jwt:Audience"],
-		IssuerSigningKey = new SymmetricSecurityKey(
-			Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-	};
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
 });
 
 #endregion
@@ -352,14 +352,14 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 // CORS Configuration
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("AllowFrontend",
-		policy =>
-		{
-			policy.WithOrigins("http://localhost:5173")
-				  .AllowAnyMethod()
-				  .AllowAnyHeader()
-				  .AllowCredentials();
-		});
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
 });
 
 var app = builder.Build();
@@ -373,27 +373,38 @@ var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
 try
 {
-	await _dbContext.Database.MigrateAsync();
-	var userManager = services.GetRequiredService<UserManager<User>>();
-	await AppDbContextSeed.SeedUserAsync(userManager);
+    await _dbContext.Database.MigrateAsync();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
-	var logger = loggerFactory.CreateLogger<Program>();
-	logger.LogError(ex, "An error occurred while applying the migration");
+    var logger = loggerFactory.CreateLogger<Program>();
+    logger.LogError(ex, "An error occurred while applying the migration");
 }
 #endregion
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// if (app.Environment.IsDevelopment())
+// {
+// 	app.UseSwagger();
+// 	app.UseSwaggerUI();
+// }
+
+app.UseSwagger();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
+    c.RoutePrefix = string.Empty;
+});
+
+app.UseStaticFiles();
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 //app.UseCors("AllowFrontend");
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 
