@@ -41,7 +41,7 @@ namespace JobConnect.Apis.DTO_s
 
 		
 		[Required(ErrorMessage = "User experience is required.")]
-		[Range(1, int.MaxValue, ErrorMessage = "User experience must be a positive number.")]
+		[Range(0, int.MaxValue, ErrorMessage = "User experience must be a positive number.")]
 		public int UserExperience { get; set; }
 
 		[Required(ErrorMessage = "Title is required.")]
