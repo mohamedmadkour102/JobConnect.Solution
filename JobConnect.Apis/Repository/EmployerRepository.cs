@@ -101,5 +101,37 @@ namespace JobConnect.Apis.Repository
 			return await _context.Applications
 				.CountAsync(a => a.Job.EmployerId == employerId);
 		}
+
+		public async Task AddToShortlistAsync(int jobId, string jobSeekerId)
+		{
+			var application = await _context.Applications
+				.FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId);
+
+			if (application == null)
+				throw new Exception("Application not found.");
+
+			application.IsShortlisted = true;
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task RemoveFromShortlistAsync(int jobId, string jobSeekerId)
+		{
+			var application = await _context.Applications
+				.FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId);
+
+			if (application == null)
+				throw new Exception("Application not found.");
+
+			application.IsShortlisted = false;
+			await _context.SaveChangesAsync();
+		}
+
+		public async Task<IEnumerable<Application>> GetShortlistedJobSeekersAsync(int jobId, string employerId)
+		{
+			return await _context.Applications
+				.Where(a => a.JobId == jobId && a.Job.EmployerId == employerId && a.IsShortlisted)
+				.Include(a => a.JobSeeker)
+				.ToListAsync();
+		}
 	}
 }

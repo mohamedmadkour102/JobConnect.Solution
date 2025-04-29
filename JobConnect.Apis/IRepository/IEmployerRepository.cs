@@ -17,5 +17,8 @@ namespace JobConnect.Apis.IRepository
 		Task DeleteJobAsync(int jobId, string employerId);
 		Task<int> GetJobsCountAsync(string employerId);
 		Task<int> GetCandidatesCountAsync(string employerId);
+		Task AddToShortlistAsync(int jobId, string jobSeekerId); // New method
+		Task RemoveFromShortlistAsync(int jobId, string jobSeekerId); // New method
+		Task<IEnumerable<Application>> GetShortlistedJobSeekersAsync(int jobId, string employerId); // New method
 	}
 }

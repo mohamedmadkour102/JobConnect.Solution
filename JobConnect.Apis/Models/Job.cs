@@ -26,7 +26,7 @@ namespace JobConnect.Apis.Models
 		public int DaysRemaining { get; set; }
 		public DateTime PostedDate { get; set; } = DateTime.UtcNow;
 	
-		public bool ShortListed { get; set; }
+		//public bool ShortListed { get; set; }
 		public string Location { get; set; } = string.Empty;
 
 		// One-to-Many with Employer

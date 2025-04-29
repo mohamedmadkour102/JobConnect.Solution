@@ -18,7 +18,7 @@ namespace JobConnect.Apis.DTO_s.EmployerDto
 		public string JobType { get; set; } = string.Empty;
 		public string Status { get; set; } = string.Empty;
 		public List<string> Responsibilities { get; set; } = new List<string>();
-		public bool ShortListed { get; set; }
+		
 		public string Location { get; set; } = string.Empty;
 	}
 }

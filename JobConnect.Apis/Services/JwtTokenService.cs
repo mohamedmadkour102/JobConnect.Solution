@@ -6,13 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace JobConnect.Apis.Services
 {
-
 	public class JwtTokenService : IJwtTokenService
 	{
 		private readonly UserManager<User> _userManager;
@@ -25,6 +23,20 @@ namespace JobConnect.Apis.Services
 		}
 
 		public async Task<(string AccessToken, string RefreshToken)> GenerateTokensAsync(User user)
+		{
+			// Generate Access Token
+			var accessToken = await GenerateAccessToken(user);
+
+			// Generate Refresh Token (as JWT)
+			var refreshToken = GenerateRefreshToken(user);
+
+			// Store refresh token in user data
+			await _userManager.SetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken", refreshToken);
+
+			return (accessToken, refreshToken);
+		}
+
+		private async Task<string> GenerateAccessToken(User user)
 		{
 			var claims = new List<Claim>
 			{
@@ -44,56 +56,75 @@ namespace JobConnect.Apis.Services
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-			var accessToken = new JwtSecurityToken(
+			var token = new JwtSecurityToken(
 				issuer: _configuration["Jwt:Issuer"],
 				audience: _configuration["Jwt:Audience"],
 				claims: claims,
-				expires: DateTime.UtcNow.AddMinutes(15), // Short-lived access token
+				expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:AccessTokenExpirationMinutes"])),
 				signingCredentials: creds
 			);
 
-			var accessTokenString = new JwtSecurityTokenHandler().WriteToken(accessToken);
-			var refreshToken = GenerateRefreshToken();
+			return new JwtSecurityTokenHandler().WriteToken(token);
+		}
 
-			// Store refresh token in user data
-			await _userManager.SetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken", refreshToken);
+		private string GenerateRefreshToken(User user)
+		{
+			var claims = new List<Claim>
+			{
+				new Claim(ClaimTypes.NameIdentifier, user.Id),
+				new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+			};
 
-			return (accessTokenString, refreshToken);
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+			var token = new JwtSecurityToken(
+				issuer: _configuration["Jwt:Issuer"],
+				audience: _configuration["Jwt:Audience"],
+				claims: claims,
+				expires: DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration["Jwt:RefreshTokenExpirationDays"])),
+				signingCredentials: creds
+			);
+
+			return new JwtSecurityTokenHandler().WriteToken(token);
 		}
 
 		public async Task<(string AccessToken, string RefreshToken)> RefreshTokenAsync(string refreshToken)
 		{
-			var principal = GetPrincipalFromExpiredToken(refreshToken);
+			// Validate the refresh token
+			var principal = GetPrincipalFromToken(refreshToken);
 			if (principal == null)
 			{
-				return (null, null);
+				return (null, null); // Invalid token
+			}
+
+			// Check if token is expired
+			var expiryDateUnix = long.Parse(principal.FindFirst(JwtRegisteredClaimNames.Exp).Value);
+			var expiryDate = DateTimeOffset.FromUnixTimeSeconds(expiryDateUnix).UtcDateTime;
+			if (expiryDate < DateTime.UtcNow)
+			{
+				return (null, null); // Expired token
 			}
 
 			var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 			var user = await _userManager.FindByIdAsync(userId);
 			if (user == null)
 			{
-				return (null, null);
+				return (null, null); // User not found
 			}
 
+			// Verify stored refresh token
 			var storedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
 			if (storedRefreshToken != refreshToken)
 			{
-				return (null, null);
+				return (null, null); // Token doesn't match
 			}
 
+			// Generate new tokens
 			return await GenerateTokensAsync(user);
 		}
 
-		private string GenerateRefreshToken()
-		{
-			var randomNumber = new byte[32];
-			using var rng = RandomNumberGenerator.Create();
-			rng.GetBytes(randomNumber);
-			return Convert.ToBase64String(randomNumber);
-		}
-
-		private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+		private ClaimsPrincipal GetPrincipalFromToken(string token)
 		{
 			var tokenValidationParameters = new TokenValidationParameters
 			{
@@ -101,7 +132,7 @@ namespace JobConnect.Apis.Services
 				ValidateIssuer = true,
 				ValidateIssuerSigningKey = true,
 				IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])),
-				ValidateLifetime = false, // Allow expired tokens for refresh
+				ValidateLifetime = true, // Validate token expiration
 				ValidIssuer = _configuration["Jwt:Issuer"],
 				ValidAudience = _configuration["Jwt:Audience"]
 			};

@@ -114,5 +114,26 @@ namespace JobConnect.Apis.Repository
 			await _context.Applications.AddAsync(application);
 			await _context.SaveChangesAsync();
 		}
+
+		public async Task<IEnumerable<Job>> GetAppliedJobsAsync(string jobSeekerId)
+		{
+			return await _context.Applications
+				.Where(a => a.JobSeekerId == jobSeekerId)
+				.Include(a => a.Job)
+				.ThenInclude(j => j.Applications)
+				.Include(a => a.Job)
+				.ThenInclude(j => j.Tags)
+				.Include(a => a.Job)
+				.ThenInclude(j => j.Responsibilities)
+				.Select(a => a.Job)
+				.ToListAsync();
+		}
+
+		public async Task<IEnumerable<Employer>> GetAllEmployersAsync()
+		{
+			return await _context.Employers
+				.Include(e => e.Jobs)
+				.ToListAsync();
+		}
 	}
 }

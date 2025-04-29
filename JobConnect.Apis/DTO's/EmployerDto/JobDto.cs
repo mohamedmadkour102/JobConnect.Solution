@@ -10,7 +10,6 @@
 		public int ApplicationsCount { get; set; }
 		public string PostedDate { get; set; } = string.Empty;
 		public string Location { get; set; } = string.Empty;
-		public bool ShortListed { get; set; }
 		public List<string> Tags { get; set; } = new List<string>();
 		public List<string> Responsibilities { get; set; } = new List<string>();
 	}

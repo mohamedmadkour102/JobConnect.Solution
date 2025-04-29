@@ -30,5 +30,7 @@ namespace JobConnect.Core.Models
 		public ICollection<Application> Applications { get; set; } = new List<Application>();
 		public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();
 		public ICollection<JobSeekerResume> Resumes { get; set; } = new List<JobSeekerResume>();
+
+		// Location
 	}
 }

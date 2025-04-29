@@ -13,5 +13,8 @@ namespace JobConnect.Apis.IRepository
 		Task<IEnumerable<Job>> GetAllJobsAsync();
 		Task<Job> GetJobByIdAsync(int jobId);
 		Task ApplyForJobAsync(string jobSeekerId, int jobId, string coverLetter, string resumePath);
+		Task<IEnumerable<Job>> GetAppliedJobsAsync(string jobSeekerId);
+		Task<IEnumerable<Employer>> GetAllEmployersAsync(); // New method
+		
 	}
 }

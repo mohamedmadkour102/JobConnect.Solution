@@ -77,5 +77,29 @@ namespace JobConnect.Apis.Controllers
 			await _jobSeekerService.ApplyForJobAsync(jobSeekerId, applyDto);
 			return Ok(new { message = "Application submitted successfully." });
 		}
+
+		[HttpGet("GetAppliedJobs")]
+		public async Task<IActionResult> GetAppliedJobs()
+		{
+			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var jobs = await _jobSeekerService.GetAppliedJobsAsync(jobSeekerId);
+			if (jobs == null || !jobs.Any())
+				return NotFound(new { message = "No applied jobs found." });
+
+			return Ok(new { message = "Applied jobs retrieved successfully.", data = jobs });
+		}
+
+		[HttpGet("GetAllEmployers")]
+		public async Task<IActionResult> GetAllEmployers()
+		{
+			var employers = await _jobSeekerService.GetAllEmployersAsync();
+			if (employers == null || !employers.Any())
+				return NotFound(new { message = "No employers found." });
+
+			return Ok(new { message = "Employers retrieved successfully.", data = employers });
+		}
+
+
+
 	}
 }

@@ -106,7 +106,6 @@ namespace JobConnect.Apis.Services
 				DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
 				PostedDate = GetTimeAgo(job.PostedDate),
 				Location = job.Location,
-				ShortListed = job.ShortListed,
 				Tags = job.Tags.Select(t => t.Tag).ToList(),
 				Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList()
 			}).ToList();
@@ -126,7 +125,6 @@ namespace JobConnect.Apis.Services
 				DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
 				PostedDate = GetTimeAgo(job.PostedDate),
 				Location = job.Location,
-				ShortListed = job.ShortListed,
 				Tags = job.Tags.Select(t => t.Tag).ToList(),
 				Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList()
 			}).ToList();
@@ -147,7 +145,6 @@ namespace JobConnect.Apis.Services
 				DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
 				PostedDate = GetTimeAgo(job.PostedDate),
 				Location = job.Location,
-				ShortListed = job.ShortListed,
 				Tags = job.Tags.Select(t => t.Tag).ToList(),
 				Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList()
 			};
@@ -168,7 +165,7 @@ namespace JobConnect.Apis.Services
 				ExpirationDate = jobDto.ExpirationDate,
 				JobType = jobDto.JobType,
 				Status = jobDto.Status,
-				ShortListed = jobDto.ShortListed,
+			
 				Location = jobDto.Location,
 				EmployerId = employerId
 			};
@@ -204,7 +201,7 @@ namespace JobConnect.Apis.Services
 			job.ExpirationDate = jobDto.ExpirationDate;
 			job.JobType = jobDto.JobType;
 			job.Status = jobDto.Status;
-			job.ShortListed = jobDto.ShortListed;
+			
 			job.Location = jobDto.Location;
 
 			// Update Tags
@@ -237,7 +234,32 @@ namespace JobConnect.Apis.Services
 				CandidatesCount = await _employerRepository.GetCandidatesCountAsync(employerId)
 			};
 		}
+		public async Task AddToShortlistAsync(int jobId, string jobSeekerId)
+		{
+			await _employerRepository.AddToShortlistAsync(jobId, jobSeekerId);
+		}
 
+		public async Task RemoveFromShortlistAsync(int jobId, string jobSeekerId)
+		{
+			await _employerRepository.RemoveFromShortlistAsync(jobId, jobSeekerId);
+		}
+
+		public async Task<IEnumerable<ShortlistedJobSeekerDto>> GetShortlistedJobSeekersAsync(int jobId, string employerId)
+		{
+			var applications = await _employerRepository.GetShortlistedJobSeekersAsync(jobId, employerId);
+
+			return applications.Select(a => new ShortlistedJobSeekerDto
+			{
+				Id = a.JobSeekerId,
+				Name = $"{a.JobSeeker.FirstName} {a.JobSeeker.LastName}",
+				Email = a.JobSeeker.Email,
+				CurrentOrDesiredJob = a.JobSeeker.CurrentOrDesiredJob,
+				YearsOfExperience = a.JobSeeker.YearsOfExperience,
+				Resume = a.Resume,
+				CoverLetter = a.CoverLetter,
+				ApplicationDate = a.ApplicationDate
+			}).ToList();
+		}
 		private string GetTimeAgo(DateTime date)
 		{
 			TimeSpan timeSpan = DateTime.UtcNow - date;
@@ -253,5 +275,7 @@ namespace JobConnect.Apis.Services
 			int daysRemaining = (expirationDate - DateTime.UtcNow).Days;
 			return daysRemaining > 0 ? daysRemaining : 0;
 		}
+
+
 	}
 }

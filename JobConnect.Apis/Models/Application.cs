@@ -18,28 +18,9 @@ namespace JobConnect.Apis.Models
 		public string CoverLetter { get; set; } = string.Empty;
 		public string Resume { get; set; } = string.Empty; // Path to the uploaded PDF file
 		public DateTime ApplicationDate { get; set; } = DateTime.UtcNow;
+		public bool IsShortlisted { get; set; } = false;
 	}
 	
 }
 
 
-//Address
-//YearsOfExperience (calculate level)
-//Current or desired job title
-//Degree
-
-
-//Bio
-//Cover letter
-//Array of resumes
-//DateOfBirth
-//Nationality
-//Martial staus
-//Gender
-//Education
-//Portfolio
-//Facebook link
-//Twitter
-//Instagram
-//Linked in
-//Array of SavedJobs
