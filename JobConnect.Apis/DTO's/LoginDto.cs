@@ -2,16 +2,18 @@
 
 namespace JobConnect.Apis.DTO_s
 {
-	public class LoginDto
-	{
-		[Required(ErrorMessage = "Email is required.")]
-		[EmailAddress(ErrorMessage = "Invalid email format.")]
-		public string Email { get; set; }
+    public class LoginDto
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; }
 
-
-		[Required(ErrorMessage = "Password is required.")]
-		[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$",
-			ErrorMessage = "Password must be at least 6 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.")]
-		public string Password { get; set; }
-	}
+        [Required(ErrorMessage = "Password is required.")]
+        [RegularExpression(
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*()_+\}}])[A-Za-z\d!@#$%&*()_+\}}]{6,}$",
+            ErrorMessage = "Password must be at least 6 characters long and include: " +
+                          "1 uppercase letter, 1 lowercase letter, 1 number, and " +
+                          "1 special character (!@#$%&*()_+}})")]
+        public string Password { get; set; }
+    }
 }
