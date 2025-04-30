@@ -26,8 +26,11 @@ namespace JobConnect.Apis.DTO_s
 		public string PhoneNumber { get; set; }
 
 		[Required(ErrorMessage = "Password is required.")]
-		[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$",
-			ErrorMessage = "Password must be at least 6 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.")]
+		[RegularExpression(
+						@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%&*()_+\}}])[A-Za-z\d!@#$%&*()_+\}}]{6,}$",
+						ErrorMessage = "Password must be at least 6 characters long and include: " +
+													"1 uppercase letter, 1 lowercase letter, 1 number, and " +
+													"1 special character (!@#$%&*()_+}})")]
 		public string Password { get; set; }
 		[Required]
 		[MinLength(4, ErrorMessage = "Address must be at least 4 characters.")]
@@ -39,7 +42,7 @@ namespace JobConnect.Apis.DTO_s
 		public string Industry { get; set; }
 		public string CompanyDescription { get; set; }
 
-		
+
 		[Required(ErrorMessage = "User experience is required.")]
 		[Range(0, int.MaxValue, ErrorMessage = "User experience must be a positive number.")]
 		public int UserExperience { get; set; }
