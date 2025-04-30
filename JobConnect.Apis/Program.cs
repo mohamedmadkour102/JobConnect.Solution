@@ -249,39 +249,39 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
 
-	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-	{
-		Name = "Authorization",
-		Type = SecuritySchemeType.Http,
-		Scheme = "Bearer",
-		BearerFormat = "JWT",
-		In = ParameterLocation.Header,
-		Description = "Enter your JWT token in the format: Bearer {token}"
-	});
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token in the format: Bearer {token}"
+    });
 
-	c.AddSecurityRequirement(new OpenApiSecurityRequirement
-		{
-				{
-						new OpenApiSecurityScheme
-						{
-								Reference = new OpenApiReference
-								{
-										Type = ReferenceType.SecurityScheme,
-										Id = "Bearer"
-								}
-						},
-						new string[] {}
-				}
-		});
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+                {
+                        new OpenApiSecurityScheme
+                        {
+                                Reference = new OpenApiReference
+                                {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = "Bearer"
+                                }
+                        },
+                        new string[] {}
+                }
+        });
 });
 
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
@@ -299,8 +299,8 @@ builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 
 #region Identity
 builder.Services.AddIdentity<User, IdentityRole>()
-		.AddEntityFrameworkStores<AppDbContext>()
-		.AddDefaultTokenProviders();
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();
 
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //	.AddJwtBearer();
@@ -325,22 +325,22 @@ builder.Services.AddIdentity<User, IdentityRole>()
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
-	options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-	options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-	options.TokenValidationParameters = new TokenValidationParameters
-	{
-		ValidateIssuer = true,
-		ValidateAudience = true,
-		ValidateLifetime = true,
-		ValidateIssuerSigningKey = true,
-		ValidIssuer = builder.Configuration["Jwt:Issuer"],
-		ValidAudience = builder.Configuration["Jwt:Audience"],
-		IssuerSigningKey = new SymmetricSecurityKey(
-					Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
-	};
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
 });
 
 #endregion
@@ -353,34 +353,34 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 // CORS Configuration
 builder.Services.AddCors(options =>
 {
-	// Get allowed origins from config (empty array if not configured)
-	var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+    // Get allowed origins from config (empty array if not configured)
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 
-	// Default origins that will always be allowed
-	var defaultOrigins = new[]
-	{
-				"https://*.vercel.app",
-				"http://localhost:3000",
-				"http://localhost:8081",
-		};
+    // Default origins that will always be allowed
+    var defaultOrigins = new[]
+    {
+                "https://*.vercel.app",
+                "http://localhost:3000",
+                "http://localhost:8081",
+        };
 
-	options.AddPolicy("AllowVercel", policy =>
-	{
-		policy.SetIsOriginAllowed(origin =>
-	{
-		// Combine config and default origins
-				var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
+    options.AddPolicy("AllowVercel", policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+    {
+        // Combine config and default origins
+        var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
 
-				return allAllowedOrigins.Any(o =>
-					origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
-					(o.StartsWith("*") &&
-					 origin.EndsWith(o.Substring(1), StringComparison.OrdinalIgnoreCase))
-			);
-			})
-	.AllowAnyHeader()
-	.AllowAnyMethod()
-	.AllowCredentials();
-	});
+        return allAllowedOrigins.Any(o =>
+            origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
+            (o.StartsWith("*") &&
+             origin.EndsWith(o.Substring(1), StringComparison.OrdinalIgnoreCase))
+    );
+    })
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials();
+    });
 
 });
 
@@ -395,14 +395,14 @@ var loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
 try
 {
-	await _dbContext.Database.MigrateAsync();
-	var userManager = services.GetRequiredService<UserManager<User>>();
-	await AppDbContextSeed.SeedUserAsync(userManager);
+    await _dbContext.Database.MigrateAsync();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
-	var logger = loggerFactory.CreateLogger<Program>();
-	logger.LogError(ex, "An error occurred while applying the migration");
+    var logger = loggerFactory.CreateLogger<Program>();
+    logger.LogError(ex, "An error occurred while applying the migration");
 }
 #endregion
 
@@ -417,8 +417,8 @@ app.UseSwagger();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-	c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-	c.RoutePrefix = string.Empty;
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseStaticFiles();
