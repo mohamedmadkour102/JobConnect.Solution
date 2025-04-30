@@ -1,188 +1,3 @@
-#region OLDCODE
-//using JobConnect.Core.Models;
-//using JobConnect.Core.Services;
-//using JobConnect.Repository.Data;
-//using JobConnect.Apis;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.EntityFrameworkCore;
-//using JobConnect.Services;
-//using JobConnect.Apis.IRepository;
-//using JobConnect.Apis.Repository;
-//using JobConnect.Apis.IService;
-//using JobConnect.Apis.Services.JobService;
-
-//var builder = WebApplication.CreateBuilder(args);
-
-//// Add services to the container.
-//#region DI
-//builder.Services.AddControllers();
-//// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//{
-//	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-//});
-
-//builder.Services.AddScoped<ITokenServices, TokenServices>();
-//builder.Services.AddScoped<IEmailService, EmailService>();
-//builder.Services.AddScoped<IJobRepository , JobRepository>();
-//builder.Services.AddScoped<IJobService , JobService>();
-//#endregion
-
-//#region Identity
-//builder.Services.AddIdentity<User, IdentityRole>()
-//	.AddEntityFrameworkStores<AppDbContext>()
-//	.AddDefaultTokenProviders();
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//	.AddJwtBearer();
-//#endregion
-
-//#region EmailSettings
-//builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-//#endregion
-
-//var app = builder.Build();
-
-//// Migrate database and seed default user
-//#region Migration
-//using var scope = app.Services.CreateScope();
-//var services = scope.ServiceProvider;
-//var _dbContext = services.GetRequiredService<AppDbContext>();
-
-//var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-
-//try
-//{
-//	await _dbContext.Database.MigrateAsync();
-//	var userManager = services.GetRequiredService<UserManager<User>>();
-//	await AppDbContextSeed.SeedUserAsync(userManager);
-//}
-//catch (Exception ex)
-//{
-//	var logger = loggerFactory.CreateLogger<Program>();
-//	logger.LogError(ex, "An error occurred while applying the migration");
-//}
-//#endregion
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//	app.UseSwagger();
-//	app.UseSwaggerUI();
-//}
-
-
-
-//app.UseHttpsRedirection();
-
-
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run(); 
-#endregion
-
-//using JobConnect.Core.Models;
-//using JobConnect.Core.Services;
-//using JobConnect.Repository.Data;
-//using JobConnect.Apis;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.EntityFrameworkCore;
-//using JobConnect.Services;
-//using JobConnect.Apis.IRepository;
-//using JobConnect.Apis.Repository;
-//using JobConnect.Apis.IService;
-//using JobConnect.Apis.Services.JobService;
-
-//var builder = WebApplication.CreateBuilder(args);
-
-//// Add services to the container.
-//#region DI
-//builder.Services.AddControllers();
-//builder.Services.AddEndpointsApiExplorer();
-//builder.Services.AddSwaggerGen();
-
-//builder.Services.AddDbContext<AppDbContext>(options =>
-//{
-//	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-//});
-
-//builder.Services.AddScoped<ITokenServices, TokenServices>();
-//builder.Services.AddScoped<IEmailService, EmailService>();
-//builder.Services.AddScoped<IJobRepository, JobRepository>();
-//builder.Services.AddScoped<IJobService, JobService>();
-//#endregion
-
-//#region Identity
-//builder.Services.AddIdentity<User, IdentityRole>()
-//	.AddEntityFrameworkStores<AppDbContext>()
-//	.AddDefaultTokenProviders();
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//	.AddJwtBearer();
-//#endregion
-
-//#region EmailSettings
-//builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-//#endregion
-
-//// CORS Configuration
-//builder.Services.AddCors(options =>
-//{
-//	options.AddPolicy("AllowFrontend",
-//		policy =>
-//		{
-//			policy.WithOrigins("http://localhost:5173") 
-//				  .AllowAnyMethod() 
-//				  .AllowAnyHeader() 
-//				  .AllowCredentials(); 
-//		});
-//});
-
-//var app = builder.Build();
-
-//// Migrate database and seed default user
-//#region Migration
-//using var scope = app.Services.CreateScope();
-//var services = scope.ServiceProvider;
-//var _dbContext = services.GetRequiredService<AppDbContext>();
-//var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-
-//try
-//{
-//	await _dbContext.Database.MigrateAsync();
-//	var userManager = services.GetRequiredService<UserManager<User>>();
-//	await AppDbContextSeed.SeedUserAsync(userManager);
-//}
-//catch (Exception ex)
-//{
-//	var logger = loggerFactory.CreateLogger<Program>();
-//	logger.LogError(ex, "An error occurred while applying the migration");
-//}
-//#endregion
-
-//// Configure the HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
-//	app.UseSwagger();
-//	app.UseSwaggerUI();
-//}
-
-//// Use CORS Policy
-//app.UseCors("AllowFrontend");
-
-//app.UseHttpsRedirection();
-//app.UseAuthorization();
-//app.MapControllers();
-//app.Run();
-
-
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
@@ -194,7 +9,8 @@ using JobConnect.Services;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.Repository;
 using JobConnect.Apis.IService;
-
+using Microsoft.AspNetCore.Diagnostics;
+using System.Text.Json;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -246,6 +62,14 @@ builder.Services.AddEndpointsApiExplorer();
 //		}
 //	});
 //});
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // for console logs
+builder.Logging.AddDebug();   // for debug output (e.g., in Visual Studio)
+builder.Host.ConfigureLogging(logging =>
+{
+    logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+});
+
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -412,6 +236,39 @@ catch (Exception ex)
 // 	app.UseSwagger();
 // 	app.UseSwaggerUI();
 // }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+        var error = exceptionHandlerPathFeature?.Error;
+
+        logger.LogError(error, "Unhandled exception occurred");
+
+        var errorDetails = new
+        {
+            Message = "Internal server error",
+            Exception = error?.Message,
+            StackTrace = error?.StackTrace,
+            Path = exceptionHandlerPathFeature?.Path,
+            InnerException = error?.InnerException?.Message
+        };
+
+        var errorJson = JsonSerializer.Serialize(errorDetails, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        await context.Response.WriteAsync(errorJson);
+    });
+});
+
 
 app.UseSwagger();
 app.UseSwagger();
