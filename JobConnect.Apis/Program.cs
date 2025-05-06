@@ -111,14 +111,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITokenServices, TokenServices>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-//builder.Services.AddScoped<IJobRepository, JobRepository>();
-//builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddScoped<IEmployerService, EmployerService>();
 builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 
 
+builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IJobService, JobService>();
 #endregion
 
 #region Identity
@@ -222,9 +222,14 @@ try
     await _dbContext.Database.MigrateAsync();
     var userManager = services.GetRequiredService<UserManager<User>>();
     await AppDbContextSeed.SeedUserAsync(userManager);
+    await _dbContext.Database.MigrateAsync();
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
+    var logger = loggerFactory.CreateLogger<Program>();
+    logger.LogError(ex, "An error occurred while applying the migration");
     var logger = loggerFactory.CreateLogger<Program>();
     logger.LogError(ex, "An error occurred while applying the migration");
 }
