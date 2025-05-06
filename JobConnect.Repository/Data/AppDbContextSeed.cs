@@ -23,7 +23,7 @@ namespace JobConnect.Repository.Data
 					PhoneNumber = "01122334455"
 
 				};
-				await _userManager.CreateAsync(user, "Pa$$W0rd");
+				await _userManager.CreateAsync(user, "Pa$$W0rd1");
 			}
 
 		}
