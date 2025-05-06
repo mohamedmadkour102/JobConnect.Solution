@@ -117,8 +117,8 @@ builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 
 
-builder.Services.AddScoped<IJobRepository, JobRepository>();
-builder.Services.AddScoped<IJobService, JobService>();
+// builder.Services.AddScoped<IJobRepository, JobRepository>();
+// builder.Services.AddScoped<IJobService, JobService>();
 #endregion
 
 #region Identity
@@ -186,6 +186,8 @@ builder.Services.AddCors(options =>
                 "https://*.vercel.app",
                 "http://localhost:3000",
                 "http://localhost:8081",
+                "https://localhost:7231",
+                "https://localhost:5173"
         };
 
     options.AddPolicy("AllowVercel", policy =>
@@ -222,14 +224,9 @@ try
     await _dbContext.Database.MigrateAsync();
     var userManager = services.GetRequiredService<UserManager<User>>();
     await AppDbContextSeed.SeedUserAsync(userManager);
-    await _dbContext.Database.MigrateAsync();
-    var userManager = services.GetRequiredService<UserManager<User>>();
-    await AppDbContextSeed.SeedUserAsync(userManager);
 }
 catch (Exception ex)
 {
-    var logger = loggerFactory.CreateLogger<Program>();
-    logger.LogError(ex, "An error occurred while applying the migration");
     var logger = loggerFactory.CreateLogger<Program>();
     logger.LogError(ex, "An error occurred while applying the migration");
 }
