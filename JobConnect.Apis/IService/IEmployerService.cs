@@ -22,5 +22,6 @@ namespace JobConnect.Apis.IService
 		Task AddToShortlistAsync(int jobId, string jobSeekerId); // New method
 		Task RemoveFromShortlistAsync(int jobId, string jobSeekerId); // New method
 		Task<IEnumerable<ShortlistedJobSeekerDto>> GetShortlistedJobSeekersAsync(int jobId, string employerId); // New method
+		Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetJobsByEmployerPaginatedAsync(string employerId, int pageNumber, int pageSize);
 	}
 }

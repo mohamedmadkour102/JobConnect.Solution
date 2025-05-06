@@ -14,5 +14,6 @@ namespace JobConnect.Apis.IService
 		Task ApplyForJobAsync(string jobSeekerId, ApplyForJobDto applyDto);
 		Task<IEnumerable<JobDto>> GetAppliedJobsAsync(string jobSeekerId);
 		Task<IEnumerable<EmployerDto>> GetAllEmployersAsync(); // New method
+		Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
 	}
 }

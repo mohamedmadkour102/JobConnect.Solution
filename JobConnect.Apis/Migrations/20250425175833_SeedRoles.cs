@@ -20,6 +20,12 @@ namespace JobConnect.Apis.Migrations
 				columns: new[] { "Id", "Name", "NormalizedName", "ConcurrencyStamp" },
 				values: new object[] { Guid.NewGuid().ToString(), "jobseeker", "JOBSEEKER", Guid.NewGuid().ToString() }
 			);
+
+			migrationBuilder.InsertData(
+		table: "AspNetRoles",
+		columns: new[] { "Id", "Name", "NormalizedName", "ConcurrencyStamp" },
+		values: new object[] { Guid.NewGuid().ToString(), "admin", "ADMIN", Guid.NewGuid().ToString() }
+	);
 		}
 
 		/// <inheritdoc />
@@ -35,6 +41,11 @@ namespace JobConnect.Apis.Migrations
 			   keyColumn: "Name",
 			   keyValue: "jobseeker"
 		   );
+			migrationBuilder.DeleteData(
+		table: "AspNetRoles",
+		keyColumn: "Name",
+		keyValue: "admin"
+	);
 		}
 	}
 }
