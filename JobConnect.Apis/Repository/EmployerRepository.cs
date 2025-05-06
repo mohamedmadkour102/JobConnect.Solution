@@ -40,6 +40,7 @@ namespace JobConnect.Apis.Repository
 		{
 			return await _context.Jobs
 				.Include(j => j.Applications)
+				.ThenInclude(a => a.JobSeeker)
 				.Include(j => j.Tags)
 				.Include(j => j.Responsibilities)
 				.Where(j => j.EmployerId == employerId)
@@ -50,6 +51,7 @@ namespace JobConnect.Apis.Repository
 		{
 			return await _context.Jobs
 				.Include(j => j.Applications)
+				.ThenInclude(a => a.JobSeeker)
 				.Include(j => j.Tags)
 				.Include(j => j.Responsibilities)
 				.Where(j => j.EmployerId == employerId)
@@ -62,9 +64,30 @@ namespace JobConnect.Apis.Repository
 		{
 			return await _context.Jobs
 				.Include(j => j.Applications)
+				.ThenInclude(a => a.JobSeeker)
 				.Include(j => j.Tags)
 				.Include(j => j.Responsibilities)
 				.FirstOrDefaultAsync(j => j.Id == jobId && j.EmployerId == employerId);
+		}
+
+		public async Task<(IEnumerable<Job> Jobs, int TotalCount)> GetJobsByEmployerPaginatedAsync(string employerId, int pageNumber, int pageSize)
+		{
+			var query = _context.Jobs
+				.Include(j => j.Applications)
+				.ThenInclude(a => a.JobSeeker)
+				.Include(j => j.Tags)
+				.Include(j => j.Responsibilities)
+				.Where(j => j.EmployerId == employerId);
+
+			var totalCount = await query.CountAsync();
+
+			var jobs = await query
+				.OrderBy(j => j.Id)
+				.Skip((pageNumber - 1) * pageSize)
+				.Take(pageSize)
+				.ToListAsync();
+
+			return (jobs, totalCount);
 		}
 
 		public async Task AddJobAsync(Job job)

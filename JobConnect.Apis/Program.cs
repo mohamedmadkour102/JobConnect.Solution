@@ -22,46 +22,6 @@ var builder = WebApplication.CreateBuilder(args);
 #region DI
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// Swagger with JWT support
-//builder.Services.AddSwaggerGen(c =>
-//{
-//	c.SwaggerDoc("v1", new OpenApiInfo
-//	{
-//		Title = "JobConnect API",
-//		Version = "v1"
-//	});
-
-
-//	c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-//	{
-//		Name = "Authorization",
-//		Type = SecuritySchemeType.Http,
-//		Scheme = "bearer",
-//		BearerFormat = "JWT",
-//		In = ParameterLocation.Header,
-//		Description = "Enter your JWT token with the Bearer prefix. Example: Bearer {your token}"
-//	});
-
-
-//	c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-//	{
-//		{
-//			new OpenApiSecurityScheme
-//			{
-//				Reference = new OpenApiReference
-//				{
-//					Type = ReferenceType.SecurityScheme,
-//					Id = "Bearer"
-//				},
-//				Scheme = "Bearer",
-//				Name = "Authorization",
-//				In = ParameterLocation.Header,
-//			},
-//			new List<string>()
-//		}
-//	});
-//});
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole(); // for console logs
 builder.Logging.AddDebug();   // for debug output (e.g., in Visual Studio)
@@ -115,7 +75,8 @@ builder.Services.AddScoped<IEmployerService, EmployerService>();
 builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
-
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // builder.Services.AddScoped<IJobRepository, JobRepository>();
 // builder.Services.AddScoped<IJobService, JobService>();
@@ -125,26 +86,6 @@ builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 builder.Services.AddIdentity<User, IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//	.AddJwtBearer();
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//	.AddJwtBearer(options =>
-//	{
-//		options.TokenValidationParameters = new TokenValidationParameters
-//		{
-//			ValidateIssuer = true,
-//			ValidateAudience = true,
-//			ValidateLifetime = true,
-//			ValidateIssuerSigningKey = true,
-//			ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-//			ValidAudience = builder.Configuration["JWT:ValidAudience"],
-//			IssuerSigningKey = new SymmetricSecurityKey(
-//				Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
-//		};
-//	});
-
 
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -212,32 +153,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Migrate database and seed default user
-#region Migration
-using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-var _dbContext = services.GetRequiredService<AppDbContext>();
-var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-
-try
+// Seeding Admin
+using (var scope = app.Services.CreateScope())
 {
-    await _dbContext.Database.MigrateAsync();
-    var userManager = services.GetRequiredService<UserManager<User>>();
-    await AppDbContextSeed.SeedUserAsync(userManager);
+	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+	await DataSeeder.SeedAdmin(userManager, roleManager);
 }
-catch (Exception ex)
-{
-    var logger = loggerFactory.CreateLogger<Program>();
-    logger.LogError(ex, "An error occurred while applying the migration");
-}
-#endregion
-
-// Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-// 	app.UseSwagger();
-// 	app.UseSwaggerUI();
-// }
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -282,7 +204,6 @@ app.UseSwaggerUI(c =>
 
 app.UseStaticFiles();
 app.UseHttpsRedirection();
-//app.UseCors("AllowFrontend");
 app.UseCors("AllowVercel");
 app.UseAuthentication();
 app.UseAuthorization();
