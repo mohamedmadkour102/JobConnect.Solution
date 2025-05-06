@@ -71,7 +71,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITokenServices, TokenServices>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-
 builder.Services.AddScoped<IEmployerService, EmployerService>();
 builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
 builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
@@ -79,6 +78,8 @@ builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 
+// builder.Services.AddScoped<IJobRepository, JobRepository>();
+// builder.Services.AddScoped<IJobService, JobService>();
 #endregion
 
 #region Identity
@@ -126,9 +127,9 @@ builder.Services.AddCors(options =>
                 "https://*.vercel.app",
                 "http://localhost:3000",
                 "http://localhost:8081",
-				"https://localhost:7231",
-				"https://localhost:5173"
-		};
+                "https://localhost:7231",
+                "https://localhost:5173"
+        };
 
     options.AddPolicy("AllowVercel", policy =>
     {
