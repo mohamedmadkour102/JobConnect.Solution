@@ -124,7 +124,7 @@ builder.Services.AddCors(options =>
     // Default origins that will always be allowed
     var defaultOrigins = new[]
     {
-                "https://*.vercel.app",
+                "https://job-connect-pink.vercel.app",
                 "http://localhost:3000",
                 "http://localhost:8081",
                 "https://localhost:7231",
