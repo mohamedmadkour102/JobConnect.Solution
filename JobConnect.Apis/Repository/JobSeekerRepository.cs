@@ -225,6 +225,7 @@ namespace JobConnect.Apis.Repository
 				.Include(j => j.Applications)
 				.Include(j => j.Tags)
 				.Include(j => j.Responsibilities)
+				.Include(j => j.Employer)
 				.ToListAsync();
 		}
 
@@ -234,6 +235,7 @@ namespace JobConnect.Apis.Repository
 				.Include(j => j.Applications)
 				.Include(j => j.Tags)
 				.Include(j => j.Responsibilities)
+				.Include(j => j.Employer)
 				.FirstOrDefaultAsync(j => j.Id == jobId);
 		}
 
@@ -262,15 +264,19 @@ namespace JobConnect.Apis.Repository
 				.ThenInclude(j => j.Tags)
 				.Include(a => a.Job)
 				.ThenInclude(j => j.Responsibilities)
+				.Include(a => a.Job)
+				.ThenInclude(j => j.Employer)
 				.Select(a => a.Job)
 				.ToListAsync();
 		}
+
 		public async Task<(IEnumerable<Job> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize)
 		{
 			var query = _context.Jobs
 				.Include(j => j.Applications)
 				.Include(j => j.Tags)
-				.Include(j => j.Responsibilities);
+				.Include(j => j.Responsibilities)
+				.Include(j => j.Employer);
 
 			var totalCount = await query.CountAsync();
 

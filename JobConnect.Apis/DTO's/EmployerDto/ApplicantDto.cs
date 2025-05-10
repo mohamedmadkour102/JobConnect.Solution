@@ -3,12 +3,12 @@
 	public class ApplicantDto
 	{
 		public string Id { get; set; }
-		public string Name { get; set; } = string.Empty;
-		public string Email { get; set; } = string.Empty;
-		public string CurrentOrDesiredJob { get; set; } = string.Empty;
+		public string Name { get; set; }
+		public string Email { get; set; }
+		public string CurrentOrDesiredJob { get; set; }
 		public int? YearsOfExperience { get; set; }
-		public string Resume { get; set; } = string.Empty;
-		public string CoverLetter { get; set; } = string.Empty;
+		public string ResumeBase64 { get; set; }
+		public string CoverLetter { get; set; }
 		public DateTime ApplicationDate { get; set; }
 		public bool IsShortlisted { get; set; }
 	}

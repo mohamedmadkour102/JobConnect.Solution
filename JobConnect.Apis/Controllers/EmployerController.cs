@@ -1,229 +1,10 @@
-﻿#region OLDCODE
-//using JobConnect.Apis.DTO_s.EmployerDto;
-//using JobConnect.Apis.IService;
-//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using System.Security.Claims;
-//using System.Threading.Tasks;
-
-//namespace JobConnect.Apis.Controllers
-//{
-//	[Route("api/[controller]")]
-//	[ApiController]
-//	[Authorize]
-//	public class EmployerController : ControllerBase
-//	{
-//		private readonly IEmployerService _employerService;
-
-//		public EmployerController(IEmployerService employerService)
-//		{
-//			_employerService = employerService;
-//		}
-
-//		[HttpGet("GetRecentJobs")]
-//		public async Task<IActionResult> GetRecentJobs()
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobs = await _employerService.GetRecentJobsAsync(employerId);
-//			if (jobs == null || !jobs.Any())
-//				return NotFound(new { message = "No recent jobs found." });
-
-//			return Ok(new { message = "Recent jobs retrieved successfully.", data = jobs });
-//		}
-
-//		[HttpGet("GetAllJobs")]
-//		public async Task<IActionResult> GetAllJobs()
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobs = await _employerService.GetJobsByEmployerAsync(employerId);
-//			if (jobs == null || !jobs.Any())
-//				return NotFound(new { message = "No jobs available at the moment." });
-
-//			return Ok(new { message = "All jobs retrieved successfully.", data = jobs });
-//		}
-
-//		[HttpGet("GetJobById")]
-//		public async Task<IActionResult> GetJobById(int id)
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var job = await _employerService.GetJobByIdAsync(id, employerId);
-//			if (job == null)
-//				return NotFound(new { message = $"Job with ID {id} not found." });
-
-//			return Ok(new { message = "Job details retrieved successfully.", data = job });
-//		}
-
-//		[HttpPost("PostJob")]
-//		public async Task<IActionResult> PostJob([FromBody] CreateJobDto jobDto)
-//		{
-//			if (jobDto == null)
-//				return BadRequest(new { message = "Invalid job data provided." });
-
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _employerService.AddJobAsync(employerId, jobDto);
-//			return CreatedAtAction(nameof(GetAllJobs), new { message = "Job created successfully." });
-//		}
-
-//		[HttpPut("UpdateJob")]
-//		public async Task<IActionResult> UpdateJob(int id, [FromBody] UpdateJobDto jobDto)
-//		{
-//			if (jobDto == null)
-//				return BadRequest(new { message = "Invalid job data provided." });
-
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobExists = await _employerService.GetJobByIdAsync(id, employerId);
-//			if (jobExists == null)
-//				return NotFound(new { message = $"Job with ID {id} not found for update." });
-
-//			await _employerService.UpdateJobAsync(id, employerId, jobDto);
-//			return Ok(new { message = "Job updated successfully." });
-//		}
-
-//		[HttpDelete("DeleteJob")]
-//		public async Task<IActionResult> DeleteJob(int id)
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobExists = await _employerService.GetJobByIdAsync(id, employerId);
-//			if (jobExists == null)
-//				return NotFound(new { message = $"Job with ID {id} not found for deletion." });
-
-//			await _employerService.DeleteJobAsync(id, employerId);
-//			return Ok(new { message = "Job deleted successfully." });
-//		}
-
-//		[HttpGet("GetJobStats")]
-//		public async Task<IActionResult> GetJobStats()
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var stats = await _employerService.GetJobStatsAsync(employerId);
-//			if (stats == null)
-//				return NotFound(new { message = "No job statistics available at the moment." });
-
-//			return Ok(new { message = "Job statistics retrieved successfully.", data = stats });
-//		}
-
-//		[HttpGet("GetCompanyInfo")]
-//		public async Task<IActionResult> GetCompanyInfo()
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var employer = await _employerService.GetEmployerByIdAsync(employerId);
-//			if (employer == null)
-//				return NotFound(new { message = "Employer not found." });
-
-//			var companyInfo = new
-//			{
-//				employer.CompanyName,
-//				employer.CompanyDescription,
-//				employer.LogoUrl
-//			};
-
-//			return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
-//		}
-
-//		[HttpPut("UpdateCompanyInfo")]
-//		public async Task<IActionResult> UpdateCompanyInfo([FromForm] UpdateCompanyInfoDto dto)
-//		{
-//			if (dto == null)
-//				return BadRequest(new { message = "Invalid company info provided." });
-
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _employerService.UpdateCompanyInfoAsync(employerId, dto);
-
-//			return Ok(new { message = "Company info updated successfully." });
-//		}
-
-//		[HttpGet("GetFoundingInfo")]
-//		public async Task<IActionResult> GetFoundingInfo()
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var employer = await _employerService.GetEmployerByIdAsync(employerId);
-//			if (employer == null)
-//				return NotFound(new { message = "Employer not found." });
-
-//			var foundingInfo = new
-//			{
-//				employer.Industry,
-//				employer.CompanySize,
-//				employer.FoundingDate,
-//				employer.Website,
-//				employer.PhoneNumber
-//			};
-
-//			return Ok(new { message = "Founding info retrieved successfully.", data = foundingInfo });
-//		}
-
-//		[HttpPut("UpdateFoundingInfo")]
-//		public async Task<IActionResult> UpdateFoundingInfo([FromBody] UpdateFoundingInfoDto dto)
-//		{
-//			if (dto == null)
-//				return BadRequest(new { message = "Invalid founding info provided." });
-
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _employerService.UpdateFoundingInfoAsync(employerId, dto);
-
-//			return Ok(new { message = "Founding info updated successfully." });
-//		}
-
-//		[HttpPost("ChangePassword")]
-//		public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
-//		{
-//			if (dto == null)
-//				return BadRequest(new { message = "Invalid password data provided." });
-
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _employerService.ChangePasswordAsync(employerId, dto);
-
-//			return Ok(new { message = "Password changed successfully." });
-//		}
-
-//		[HttpPost("AddToShortlist")]
-//		public async Task<IActionResult> AddToShortlist([FromBody] ShortlistDto shortlistDto)
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
-//			if (job == null)
-//				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-//			await _employerService.AddToShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
-//			return Ok(new { message = "JobSeeker added to shortlist successfully." });
-//		}
-
-//		[HttpPost("RemoveFromShortlist")]
-//		public async Task<IActionResult> RemoveFromShortlist([FromBody] ShortlistDto shortlistDto)
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
-//			if (job == null)
-//				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-//			await _employerService.RemoveFromShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
-//			return Ok(new { message = "JobSeeker removed from shortlist successfully." });
-//		}
-
-//		[HttpGet("GetShortlistedJobSeekers/{jobId}")]
-//		public async Task<IActionResult> GetShortlistedJobSeekers(int jobId)
-//		{
-//			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var job = await _employerService.GetJobByIdAsync(jobId, employerId);
-//			if (job == null)
-//				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-//			var shortlistedJobSeekers = await _employerService.GetShortlistedJobSeekersAsync(jobId, employerId);
-//			if (!shortlistedJobSeekers.Any())
-//				return NotFound(new { message = "No shortlisted job seekers found for this job." });
-
-//			return Ok(new { message = "Shortlisted job seekers retrieved successfully.", data = shortlistedJobSeekers });
-//		}
-//	}
-//} 
-#endregion
-
-using JobConnect.Apis.DTO_s.EmployerDto;
+﻿using JobConnect.Apis.DTO_s.EmployerDto;
 using JobConnect.Apis.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using JobConnect.Apis.Helpers;
 
 namespace JobConnect.Apis.Controllers
 {
@@ -233,10 +14,12 @@ namespace JobConnect.Apis.Controllers
 	public class EmployerController : ControllerBase
 	{
 		private readonly IEmployerService _employerService;
+		private readonly IWebHostEnvironment _environment;
 
-		public EmployerController(IEmployerService employerService)
+		public EmployerController(IEmployerService employerService, IWebHostEnvironment environment)
 		{
 			_employerService = employerService;
+			_environment = environment;
 		}
 
 		[HttpGet("GetRecentJobs")]
@@ -316,7 +99,7 @@ namespace JobConnect.Apis.Controllers
 			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 			var stats = await _employerService.GetJobStatsAsync(employerId);
 			if (stats == null)
-				return Ok(new { message = "No job statistics available at the moment.", data = (object) null });
+				return Ok(new { message = "No job statistics available at the moment.", data = (object)null });
 
 			return Ok(new { message = "Job statistics retrieved successfully.", data = stats });
 		}
@@ -329,11 +112,13 @@ namespace JobConnect.Apis.Controllers
 			if (employer == null)
 				return NotFound(new { message = "Employer not found." });
 
+			var logoBase64 = await FileHelper.ConvertRelativeFileToBase64Async(_environment.WebRootPath, employer.LogoUrl);
+
 			var companyInfo = new
 			{
 				employer.CompanyName,
 				employer.CompanyDescription,
-				employer.LogoUrl
+				LogoBase64 = logoBase64
 			};
 
 			return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
@@ -395,29 +180,6 @@ namespace JobConnect.Apis.Controllers
 			return Ok(new { message = "Password changed successfully." });
 		}
 
-		[HttpPost("AddToShortlist")]
-		public async Task<IActionResult> AddToShortlist([FromBody] ShortlistDto shortlistDto)
-		{
-			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
-			if (job == null)
-				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-			await _employerService.AddToShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
-			return Ok(new { message = "JobSeeker added to shortlist successfully." });
-		}
-
-		[HttpPost("RemoveFromShortlist")]
-		public async Task<IActionResult> RemoveFromShortlist([FromBody] ShortlistDto shortlistDto)
-		{
-			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
-			if (job == null)
-				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-			await _employerService.RemoveFromShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
-			return Ok(new { message = "JobSeeker removed from shortlist successfully." });
-		}
 		[HttpGet("GetAllJobsPaginated")]
 		public async Task<IActionResult> GetAllJobsPaginated([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
 		{
@@ -439,21 +201,6 @@ namespace JobConnect.Apis.Controllers
 				pageSize,
 				totalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
 			});
-		}
-
-		[HttpGet("GetShortlistedJobSeekers/{jobId}")]
-		public async Task<IActionResult> GetShortlistedJobSeekers(int jobId)
-		{
-			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			var job = await _employerService.GetJobByIdAsync(jobId, employerId);
-			if (job == null)
-				return NotFound(new { message = "Job not found or you don't have access to it." });
-
-			var shortlistedJobSeekers = await _employerService.GetShortlistedJobSeekersAsync(jobId, employerId);
-			if (!shortlistedJobSeekers.Any())
-				return Ok(new { message = "No shortlisted job seekers found for this job.", data = new List<object>() });
-
-			return Ok(new { message = "Shortlisted job seekers retrieved successfully.", data = shortlistedJobSeekers });
 		}
 	}
 }

@@ -20,5 +20,6 @@
 		public int Vacancies { get; set; }
 		public List<string> Responsibilities { get; set; } = new List<string>();
 		public List<string> Tags { get; set; } = new List<string>();
+		public EmployerInfo Employer { get; set; }
 	}
 }
