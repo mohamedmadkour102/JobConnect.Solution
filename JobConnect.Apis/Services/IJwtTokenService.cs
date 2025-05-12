@@ -19,5 +19,7 @@ namespace JobConnect.Apis.Services
 		/// <param name="refreshToken">The current Refresh Token to validate.</param>
 		/// <returns>A tuple containing the Access Token and Refresh Token (either new or the same).</returns>
 		Task<(string AccessToken, string RefreshToken)> RefreshTokenAsync(string accessToken, string refreshToken);
+
+		Task<bool> LogoutAsync(string refreshToken);
 	}
 }
