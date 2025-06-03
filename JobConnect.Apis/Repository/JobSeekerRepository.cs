@@ -190,21 +190,38 @@ namespace JobConnect.Apis.Repository
 				.ToListAsync();
 		}
 
+		//public async Task SaveJobAsync(string jobSeekerId, int jobId)
+		//{
+		//	var existing = await _context.SavedJobs
+		//		.FirstOrDefaultAsync(sj => sj.JobSeekerId == jobSeekerId && sj.JobId == jobId);
+
+		//	if (existing == null)
+		//	{
+		//		_context.SavedJobs.Add(new SavedJob
+		//		{
+		//			JobSeekerId = jobSeekerId,
+		//			JobId = jobId,
+		//			SavedDate = DateTime.UtcNow
+		//		});
+		//		await _context.SaveChangesAsync();
+		//	}
+		//}
 		public async Task SaveJobAsync(string jobSeekerId, int jobId)
 		{
 			var existing = await _context.SavedJobs
 				.FirstOrDefaultAsync(sj => sj.JobSeekerId == jobSeekerId && sj.JobId == jobId);
 
-			if (existing == null)
+			if (existing != null)
+				throw new InvalidOperationException("You have already saved this job.");
+
+			_context.SavedJobs.Add(new SavedJob
 			{
-				_context.SavedJobs.Add(new SavedJob
-				{
-					JobSeekerId = jobSeekerId,
-					JobId = jobId,
-					SavedDate = DateTime.UtcNow
-				});
-				await _context.SaveChangesAsync();
-			}
+				JobSeekerId = jobSeekerId,
+				JobId = jobId,
+				SavedDate = DateTime.UtcNow
+			});
+
+			await _context.SaveChangesAsync();
 		}
 
 		public async Task UnsaveJobAsync(string jobSeekerId, int jobId)
