@@ -298,7 +298,33 @@ namespace JobConnect.Apis.Services
 			await _userManager.RemoveAuthenticationTokenAsync(user, "JobConnect", "RefreshToken"); // Invalidate old refresh token
 			return await GenerateTokensAsync(user); // Generate new tokens
 		}
+		public async Task<bool> LogoutAsync(string refreshToken)
+		{
+			// Validate the refresh token
+			var refreshPrincipal = GetPrincipalFromToken(refreshToken);
+			if (refreshPrincipal == null)
+			{
+				return false; // Invalid refresh token
+			}
 
+			var userId = refreshPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var user = await _userManager.FindByIdAsync(userId);
+			if (user == null)
+			{
+				return false; // User not found
+			}
+
+			// Verify stored refresh token
+			var storedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
+			if (storedRefreshToken != refreshToken)
+			{
+				return false; // Refresh token doesn't match
+			}
+
+			// Invalidate the refresh token by removing it
+			await _userManager.RemoveAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
+			return true;
+		}
 		private ClaimsPrincipal GetPrincipalFromToken(string token)
 		{
 			var tokenValidationParameters = new TokenValidationParameters
