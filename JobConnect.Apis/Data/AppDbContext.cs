@@ -20,7 +20,8 @@ namespace JobConnect.Repository.Data
 
 		public DbSet<JobTag> JobTags { get; set; }
 		public DbSet<JobResponsibility> JobResponsibilities { get; set; }
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<ContactMessage> ContactMessages { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
 

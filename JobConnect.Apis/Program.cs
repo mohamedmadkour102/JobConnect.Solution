@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using JobConnect.Apis.Services;
+using JobConnect.Apis.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,8 @@ builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
 builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 // builder.Services.AddScoped<IJobRepository, JobRepository>();
 // builder.Services.AddScoped<IJobService, JobService>();
