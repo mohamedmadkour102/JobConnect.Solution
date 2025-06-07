@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobConnect.Apis.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250428190225_EditJob01null")]
-    partial class EditJob01null
+    [Migration("20250606202924_SeedRoles")]
+    partial class SeedRoles
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,9 @@ namespace JobConnect.Apis.Migrations
                     b.Property<string>("CoverLetter")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsShortlisted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("JobId")
                         .HasColumnType("int");
@@ -120,9 +123,6 @@ namespace JobConnect.Apis.Migrations
                     b.Property<string>("SalaryType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ShortListed")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -240,6 +240,42 @@ namespace JobConnect.Apis.Migrations
                     b.HasIndex("JobSeekerId");
 
                     b.ToTable("SavedJobs");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.ContactMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContactMessages");
                 });
 
             modelBuilder.Entity("JobConnect.Core.Models.User", b =>
@@ -561,7 +597,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("Applications")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
@@ -624,7 +660,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("SavedJobs")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")

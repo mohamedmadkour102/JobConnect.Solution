@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobConnect.Apis.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250429004205_addshorted")]
-    partial class addshorted
+    [Migration("20250606202910_Creation")]
+    partial class Creation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -240,6 +240,42 @@ namespace JobConnect.Apis.Migrations
                     b.HasIndex("JobSeekerId");
 
                     b.ToTable("SavedJobs");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.ContactMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContactMessages");
                 });
 
             modelBuilder.Entity("JobConnect.Core.Models.User", b =>
@@ -561,7 +597,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("Applications")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
@@ -624,7 +660,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("SavedJobs")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")

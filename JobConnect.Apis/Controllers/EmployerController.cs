@@ -3,8 +3,7 @@ using JobConnect.Apis.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using JobConnect.Apis.Helpers;
+
 
 namespace JobConnect.Apis.Controllers
 {
@@ -104,25 +103,6 @@ namespace JobConnect.Apis.Controllers
 			return Ok(new { message = "Job statistics retrieved successfully.", data = stats });
 		}
 
-        //[HttpGet("GetCompanyInfo")]
-        //public async Task<IActionResult> GetCompanyInfo()
-        //{
-        //	var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //	var employer = await _employerService.GetEmployerByIdAsync(employerId);
-        //	if (employer == null)
-        //		return NotFound(new { message = "Employer not found." });
-
-        //	var logoBase64 = await FileHelper.ConvertRelativeFileToBase64Async(_environment.WebRootPath, employer.LogoUrl);
-
-        //	var companyInfo = new
-        //	{
-        //		employer.CompanyName,
-        //		employer.CompanyDescription,
-        //		LogoBase64 = logoBase64
-        //	};
-
-        //	return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
-        //}
 
         [HttpGet("GetCompanyInfo")]
         public async Task<IActionResult> GetCompanyInfo()
@@ -136,7 +116,7 @@ namespace JobConnect.Apis.Controllers
             {
                 CompanyName = employer.CompanyName,
                 CompanyDescription = employer.CompanyDescription,
-                LogoUrl = employer.LogoUrl // ارجعي اللينك مباشرة
+                LogoUrl = employer.LogoUrl 
             };
 
             return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
@@ -220,5 +200,39 @@ namespace JobConnect.Apis.Controllers
 				totalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
 			});
 		}
-	}
+        // New endpoint to delete the Employer account
+        [HttpDelete("DeleteAccount")]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            try
+            {
+                var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(employerId))
+                    return Unauthorized(new { message = "Invalid user." });
+
+                await _employerService.DeleteEmployerAccountAsync(employerId);
+                return Ok(new { message = "Account deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // New endpoint to get JobSeeker by ID
+        [HttpGet("GetJobSeekerById/{jobSeekerId}")]
+        public async Task<IActionResult> GetJobSeekerById(string jobSeekerId)
+        {
+            if (string.IsNullOrEmpty(jobSeekerId))
+                return BadRequest(new { message = "Invalid JobSeeker ID." });
+
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var jobSeeker = await _employerService.GetJobSeekerByIdAsync(employerId, jobSeekerId);
+
+            if (jobSeeker == null)
+                return NotFound(new { message = "JobSeeker not found or not associated with your jobs." });
+
+            return Ok(new { message = "JobSeeker retrieved successfully.", data = jobSeeker });
+        }
+    }
 }

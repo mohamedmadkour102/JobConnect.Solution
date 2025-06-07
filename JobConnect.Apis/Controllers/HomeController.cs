@@ -1,14 +1,10 @@
 ﻿using JobConnect.Apis.DTO_s;
-using JobConnect.Core;
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace JobConnect.Apis.Controllers
 {
@@ -34,7 +30,7 @@ namespace JobConnect.Apis.Controllers
             {
                 _logger.LogInformation("Received Contact Us message from {Email}", dto.Email);
 
-                // Create the ContactMessage entity
+                
                 var message = new ContactMessage
                 {
                     FirstName = dto.FirstName,
@@ -44,11 +40,10 @@ namespace JobConnect.Apis.Controllers
                     Message = dto.Message
                 };
 
-                // Save to database
                 _context.ContactMessages.Add(message);
                 await _context.SaveChangesAsync();
 
-                // Format the email body as HTML
+        
                 var emailBody = $@"
                     <h2>New Contact Us Message</h2>
                     <table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse;'>
@@ -93,7 +88,7 @@ namespace JobConnect.Apis.Controllers
             }
         }
 
-        [HttpGet("GetAll")]
+        [HttpGet("GetAllMessages")]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -110,6 +105,34 @@ namespace JobConnect.Apis.Controllers
             {
                 _logger.LogError(ex, "Error fetching Contact Us messages");
                 return StatusCode(500, new { Message = "An error occurred while fetching messages." });
+            }
+        }
+
+        [HttpGet("GetAllTags")]
+        public async Task<IActionResult> GetAllTags()
+        {
+            try
+            {
+                _logger.LogInformation("Fetching all Job Tags");
+
+
+                var tags = await _context.JobTags
+                    .Select(jt => jt.Tag)
+                    .Distinct() 
+                    .ToListAsync();
+
+                if (!tags.Any())
+                {
+                    _logger.LogWarning("No Job Tags found in the database");
+                    return NotFound(new { Message = "No tags found." });
+                }
+
+                return Ok(tags);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching Job Tags");
+                return StatusCode(500, new { Message = "An error occurred while fetching tags." });
             }
         }
     }

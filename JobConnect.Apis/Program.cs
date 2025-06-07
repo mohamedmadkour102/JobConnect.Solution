@@ -157,11 +157,22 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Seeding Admin
+//using (var scope = app.Services.CreateScope())
+//{
+//    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+//    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+//    await DataSeeder.SeedAdmin(userManager, roleManager);
+//}
+
 using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
     await DataSeeder.SeedAdmin(userManager, roleManager);
+    await DataSeeder.SeedJobs(dbContext, userManager);
+    await DataSeeder.SeedJobTags(dbContext);
 }
 
 app.UseExceptionHandler(errorApp =>
