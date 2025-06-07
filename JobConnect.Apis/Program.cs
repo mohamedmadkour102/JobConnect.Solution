@@ -20,22 +20,19 @@ using JobConnect.Apis.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-#region DI
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole(); // for console logs
-builder.Logging.AddDebug();   // for debug output (e.g., in Visual Studio)
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 builder.Host.ConfigureLogging(logging =>
 {
     logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 });
 
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
-
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -45,28 +42,30 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter your JWT token in the format: Bearer {token}"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
                 {
-                        new OpenApiSecurityScheme
-                        {
-                                Reference = new OpenApiReference
-                                {
-                                        Type = ReferenceType.SecurityScheme,
-                                        Id = "Bearer"
-                                }
-                        },
-                        new string[] {}
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
-        });
+            },
+            new string[] {}
+        }
+    });
 });
-
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null));
 });
 
 builder.Services.AddScoped<ITokenServices, TokenServices>();
@@ -81,16 +80,10 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-// builder.Services.AddScoped<IJobRepository, JobRepository>();
-// builder.Services.AddScoped<IJobService, JobService>();
-#endregion
-
-#region Identity
 builder.Services.AddIdentity<User, IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -107,65 +100,44 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 });
 
-#endregion
-
-#region EmailSettings
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-#endregion
 
-// CORS Configuration
-// CORS Configuration
 builder.Services.AddCors(options =>
 {
-    // Get allowed origins from config (empty array if not configured)
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-
-    // Default origins that will always be allowed
     var defaultOrigins = new[]
     {
-                "https://job-connect-pink.vercel.app",
-                "http://localhost:3000",
-                "http://localhost:8081",
-                "https://localhost:7231",
-                "https://localhost:5173"
+        "https://job-connect-pink.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:8081",
+        "https://localhost:7231",
+        "https://localhost:5173"
     };
-
     options.AddPolicy("AllowVercel", policy =>
     {
         policy.SetIsOriginAllowed(origin =>
-    {
-        // Combine config and default origins
-        var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
-
-        return allAllowedOrigins.Any(o =>
-            origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
-            (o.StartsWith("*") &&
-             origin.EndsWith(o.Substring(1), StringComparison.OrdinalIgnoreCase))
-    );
-    })
-    .AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials();
+        {
+            var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
+            return allAllowedOrigins.Any(o =>
+                origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
+                (o.StartsWith("*") &&
+                 origin.EndsWith(o.Substring(1), StringComparison.OrdinalIgnoreCase)));
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
-
 });
 
 var app = builder.Build();
 
-
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-    await DataSeeder.SeedAdmin(userManager, roleManager);
-    await DataSeeder.SeedJobs(dbContext, userManager);
-    await DataSeeder.SeedJobTags(dbContext);
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseExceptionHandler(errorApp =>
@@ -174,14 +146,10 @@ app.UseExceptionHandler(errorApp =>
     {
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-
         var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
-
         var error = exceptionHandlerPathFeature?.Error;
-
         logger.LogError(error, "Unhandled exception occurred");
-
         var errorDetails = new
         {
             Message = "Internal server error",
@@ -190,24 +158,19 @@ app.UseExceptionHandler(errorApp =>
             Path = exceptionHandlerPathFeature?.Path,
             InnerException = error?.InnerException?.Message
         };
-
         var errorJson = JsonSerializer.Serialize(errorDetails, new JsonSerializerOptions
         {
             WriteIndented = true
         });
-
         await context.Response.WriteAsync(errorJson);
     });
 });
 
-
-app.UseSwagger();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
- //   c.RoutePrefix = string.Empty;
-    c.RoutePrefix = "swagger";
+    c.RoutePrefix = string.Empty;
 });
 
 app.UseStaticFiles();
@@ -216,6 +179,24 @@ app.UseCors("AllowVercel");
 app.UseAuthentication();
 app.UseAuthorization();
 
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await DataSeeder.SeedAdmin(userManager, roleManager);
+        await DataSeeder.SeedJobs(dbContext, userManager);
+        await DataSeeder.SeedJobTags(dbContext);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error occurred during database seeding");
+    }
+}
 
 app.MapControllers();
 app.Run();
