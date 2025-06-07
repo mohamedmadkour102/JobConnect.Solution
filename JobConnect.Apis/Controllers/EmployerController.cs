@@ -104,27 +104,45 @@ namespace JobConnect.Apis.Controllers
 			return Ok(new { message = "Job statistics retrieved successfully.", data = stats });
 		}
 
-		[HttpGet("GetCompanyInfo")]
-		public async Task<IActionResult> GetCompanyInfo()
-		{
-			var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			var employer = await _employerService.GetEmployerByIdAsync(employerId);
-			if (employer == null)
-				return NotFound(new { message = "Employer not found." });
+        //[HttpGet("GetCompanyInfo")]
+        //public async Task<IActionResult> GetCompanyInfo()
+        //{
+        //	var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //	var employer = await _employerService.GetEmployerByIdAsync(employerId);
+        //	if (employer == null)
+        //		return NotFound(new { message = "Employer not found." });
 
-			var logoBase64 = await FileHelper.ConvertRelativeFileToBase64Async(_environment.WebRootPath, employer.LogoUrl);
+        //	var logoBase64 = await FileHelper.ConvertRelativeFileToBase64Async(_environment.WebRootPath, employer.LogoUrl);
 
-			var companyInfo = new
-			{
-				employer.CompanyName,
-				employer.CompanyDescription,
-				LogoBase64 = logoBase64
-			};
+        //	var companyInfo = new
+        //	{
+        //		employer.CompanyName,
+        //		employer.CompanyDescription,
+        //		LogoBase64 = logoBase64
+        //	};
 
-			return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
-		}
+        //	return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
+        //}
 
-		[HttpPut("UpdateCompanyInfo")]
+        [HttpGet("GetCompanyInfo")]
+        public async Task<IActionResult> GetCompanyInfo()
+        {
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var employer = await _employerService.GetEmployerByIdAsync(employerId);
+            if (employer == null)
+                return NotFound(new { message = "Employer not found." });
+
+            var companyInfo = new CompanyInfoDto
+            {
+                CompanyName = employer.CompanyName,
+                CompanyDescription = employer.CompanyDescription,
+                LogoUrl = employer.LogoUrl // ارجعي اللينك مباشرة
+            };
+
+            return Ok(new { message = "Company info retrieved successfully.", data = companyInfo });
+        }
+
+        [HttpPut("UpdateCompanyInfo")]
 		public async Task<IActionResult> UpdateCompanyInfo([FromForm] UpdateCompanyInfoDto dto)
 		{
 			if (dto == null)

@@ -20,7 +20,8 @@ namespace JobConnect.Repository.Data
 
 		public DbSet<JobTag> JobTags { get; set; }
 		public DbSet<JobResponsibility> JobResponsibilities { get; set; }
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<ContactMessage> ContactMessages { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
 
@@ -58,11 +59,17 @@ namespace JobConnect.Repository.Data
 				.OnDelete(DeleteBehavior.Cascade);
 
 			// One-to-Many: Job -> Applications (with Restrict to avoid cascade issues)
+			//modelBuilder.Entity<Application>()
+			//	.HasOne(a => a.Job)
+			//	.WithMany(j => j.Applications)
+			//	.HasForeignKey(a => a.JobId)
+			//	.OnDelete(DeleteBehavior.Restrict);
 			modelBuilder.Entity<Application>()
-				.HasOne(a => a.Job)
-				.WithMany(j => j.Applications)
-				.HasForeignKey(a => a.JobId)
-				.OnDelete(DeleteBehavior.Restrict);
+	.HasOne(a => a.Job)
+	.WithMany(j => j.Applications)
+	.HasForeignKey(a => a.JobId)
+	.OnDelete(DeleteBehavior.Cascade);
+
 
 			// One-to-Many: JobSeeker -> Applications (still with Cascade)
 			modelBuilder.Entity<Application>()

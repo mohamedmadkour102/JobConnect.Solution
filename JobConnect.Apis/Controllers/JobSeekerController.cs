@@ -3,8 +3,6 @@ using JobConnect.Apis.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using System.IO;
 using JobConnect.Apis.Helpers;
 
 namespace JobConnect.Apis.Controllers
@@ -41,9 +39,19 @@ namespace JobConnect.Apis.Controllers
 				return BadRequest(new { message = "Invalid job ID." });
 
 			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			await _jobSeekerService.SaveJobAsync(jobSeekerId, request.JobId);
-			return Ok(new { message = "Job saved successfully." });
+
+			try
+			{
+				await _jobSeekerService.SaveJobAsync(jobSeekerId, request.JobId);
+				return Ok(new { message = "Job saved successfully." });
+			}
+			catch (InvalidOperationException ex)
+			{
+				
+				return BadRequest(new { message = ex.Message });
+			}
 		}
+
 
 		[HttpPost("UnsaveJob")]
 		public async Task<IActionResult> UnsaveJob([FromBody] SaveJobRequestDto request)
