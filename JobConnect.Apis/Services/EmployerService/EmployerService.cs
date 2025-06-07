@@ -91,6 +91,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 MaxSalary = job.MaxSalary,
                 MinSalary = job.MinSalary,
                 SalaryType = job.SalaryType,
@@ -129,6 +130,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 MaxSalary = job.MaxSalary,
                 MinSalary = job.MinSalary,
                 SalaryType = job.SalaryType,
@@ -168,6 +170,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 MaxSalary = job.MaxSalary,
                 MinSalary = job.MinSalary,
                 SalaryType = job.SalaryType,
@@ -209,6 +212,7 @@ namespace JobConnect.Apis.Services
                 Vacancies = jobDto.Vacancies,
                 ExpirationDate = jobDto.ExpirationDate,
                 JobType = jobDto.JobType,
+                WorkPlace = jobDto.WorkPlace,
                 Status = jobDto.Status,
                 Location = jobDto.Location,
                 EmployerId = employerId
@@ -242,6 +246,7 @@ namespace JobConnect.Apis.Services
             job.Vacancies = jobDto.Vacancies;
             job.ExpirationDate = jobDto.ExpirationDate;
             job.JobType = jobDto.JobType;
+            job.WorkPlace = jobDto.WorkPlace;
             job.Status = jobDto.Status;
             job.Location = jobDto.Location;
 
@@ -312,6 +317,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 MaxSalary = job.MaxSalary,
                 MinSalary = job.MinSalary,
                 SalaryType = job.SalaryType,

@@ -4,6 +4,8 @@ using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
 using JobConnect.Core.Models;
 using JobConnect.Apis.Models;
+using JobConnect.Apis.DTO_s.EmployerDto;
+using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
 
 
 namespace JobConnect.Apis.Services
@@ -29,18 +31,48 @@ namespace JobConnect.Apis.Services
             return jobSeeker;
         }
 
-        public async Task<IEnumerable<SavedJobDto>> GetSavedJobsAsync(string jobSeekerId)
+        //public async Task<IEnumerable<SavedJobDto>> GetSavedJobsAsync(string jobSeekerId)
+        //{
+        //    var jobs = await _jobSeekerRepository.GetSavedJobsAsync(jobSeekerId);
+
+        //    return jobs.Select(job => new SavedJobDto
+        //    {
+        //        Id = job.Id,
+        //        Title = job.Title,
+        //        Location = job.Location,
+        //        JobType = job.JobType,
+        //        PostedDate = GetTimeAgo(job.PostedDate),
+        //        ApplicationsCount = job.Applications.Count
+        //    }).ToList();
+        //}
+
+        public async Task<IEnumerable<SavedJobSummaryDto>> GetSavedJobsAsync(string jobSeekerId)
         {
             var jobs = await _jobSeekerRepository.GetSavedJobsAsync(jobSeekerId);
 
-            return jobs.Select(job => new SavedJobDto
+            return jobs.Select(job => new SavedJobSummaryDto
             {
                 Id = job.Id,
                 Title = job.Title,
+                EmployerName = $"{job.Employer.FirstName} {job.Employer.LastName}",
                 Location = job.Location,
+                CreatedAt = GetTimeAgo(job.PostedDate),
+                Applicants = job.Applications.Select(a => new ApplicantDto
+                {
+                    Id = a.JobSeeker.Id,
+                    Name = $"{a.JobSeeker.FirstName} {a.JobSeeker.LastName}",
+                    Email = a.JobSeeker.Email,
+                    CurrentOrDesiredJob = a.JobSeeker.CurrentOrDesiredJob,
+                    YearsOfExperience = a.JobSeeker.YearsOfExperience,
+                    ResumeBase64 = a.Resume,  // محتاج تظبط
+                    CoverLetter = a.CoverLetter,
+                    ApplicationDate = a.ApplicationDate,
+                    IsShortlisted = a.IsShortlisted
+                }).ToList(),
+                MinSalary = job.MinSalary,
+                MaxSalary = job.MaxSalary,
                 JobType = job.JobType,
-                PostedDate = GetTimeAgo(job.PostedDate),
-                ApplicationsCount = job.Applications.Count
+                WorkPlace = job.WorkPlace
             }).ToList();
         }
 
@@ -91,7 +123,7 @@ namespace JobConnect.Apis.Services
             }));
         }
 
-        public async Task<JobDto> GetJobByIdAsync(int jobId)
+        public async Task<DTO_s.SeekerDto.JobDto> GetJobByIdAsync(int jobId)
         {
             var job = await _jobSeekerRepository.GetJobByIdAsync(jobId);
             if (job == null)
@@ -169,43 +201,75 @@ namespace JobConnect.Apis.Services
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
         }
 
-        public async Task<IEnumerable<JobDto>> GetAppliedJobsAsync(string jobSeekerId)
+        //public async Task<IEnumerable<JobDto>> GetAppliedJobsAsync(string jobSeekerId)
+        //{
+        //    var jobs = await _jobSeekerRepository.GetAppliedJobsAsync(jobSeekerId);
+
+        //    return await Task.WhenAll(jobs.Select(async job => new JobDto
+        //    {
+        //        Id = job.Id,
+        //        Title = job.Title,
+        //        Status = job.Status,
+        //        ApplicationsCount = job.Applications.Count,
+        //        JobType = job.JobType,
+        //        DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
+        //        PostedDate = GetTimeAgo(job.PostedDate),
+        //        Location = job.Location,
+        //        Description = job.Description,
+        //        MinSalary = job.MinSalary,
+        //        MaxSalary = job.MaxSalary,
+        //        SalaryType = job.SalaryType,
+        //        Education = job.Education,
+        //        Experience = job.Experience,
+        //        Vacancies = job.Vacancies,
+        //        Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList(),
+        //        Tags = job.Tags.Select(t => t.Tag).ToList(),
+        //        Employer = new EmployerInfo
+        //        {
+        //            Id = job.Employer.Id,
+        //            Name = $"{job.Employer.FirstName} {job.Employer.LastName}",
+        //            Email = job.Employer.Email,
+        //            CompanyName = job.Employer.CompanyName,
+        //            CompanySize = job.Employer.CompanySize,
+        //            FoundingDate = job.Employer.FoundingDate,
+        //            Industry = job.Employer.Industry,
+        //            LogoBase64 = string.IsNullOrEmpty(job.Employer.LogoUrl) ? null : job.Employer.LogoUrl 
+        //        }
+        //    }));
+        //}
+
+
+
+        public async Task<IEnumerable<AppliedJobSummaryDto>> GetAppliedJobsAsync(string jobSeekerId)
         {
             var jobs = await _jobSeekerRepository.GetAppliedJobsAsync(jobSeekerId);
 
-            return await Task.WhenAll(jobs.Select(async job => new JobDto
+            return await Task.WhenAll(jobs.Select(async job => new AppliedJobSummaryDto
             {
                 Id = job.Id,
                 Title = job.Title,
-                Status = job.Status,
-                ApplicationsCount = job.Applications.Count,
-                JobType = job.JobType,
-                DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
-                PostedDate = GetTimeAgo(job.PostedDate),
+                EmployerName = $"{job.Employer.FirstName} {job.Employer.LastName}",
                 Location = job.Location,
-                Description = job.Description,
+                CreatedAt = GetTimeAgo(job.PostedDate),
+                Applicants = job.Applications.Select(a => new ApplicantDto
+                {
+                    Id = a.JobSeeker.Id,
+                    Name = $"{a.JobSeeker.FirstName} {a.JobSeeker.LastName}",
+                    Email = a.JobSeeker.Email,
+                    CurrentOrDesiredJob = a.JobSeeker.CurrentOrDesiredJob,
+                    YearsOfExperience = a.JobSeeker.YearsOfExperience,
+                    ResumeBase64 = a.Resume,      // محتاج تظبيط
+                    CoverLetter = a.CoverLetter,
+                    ApplicationDate = a.ApplicationDate,
+                    IsShortlisted = a.IsShortlisted
+                }).ToList(),
                 MinSalary = job.MinSalary,
                 MaxSalary = job.MaxSalary,
-                SalaryType = job.SalaryType,
-                Education = job.Education,
-                Experience = job.Experience,
-                Vacancies = job.Vacancies,
-                Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList(),
-                Tags = job.Tags.Select(t => t.Tag).ToList(),
-                Employer = new EmployerInfo
-                {
-                    Id = job.Employer.Id,
-                    Name = $"{job.Employer.FirstName} {job.Employer.LastName}",
-                    Email = job.Employer.Email,
-                    CompanyName = job.Employer.CompanyName,
-                    CompanySize = job.Employer.CompanySize,
-                    FoundingDate = job.Employer.FoundingDate,
-                    Industry = job.Employer.Industry,
-                    LogoBase64 = string.IsNullOrEmpty(job.Employer.LogoUrl) ? null : job.Employer.LogoUrl 
-                }
+                JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
+                Status = job.Status
             }));
         }
-
         public async Task<IEnumerable<EmployerDto>> GetAllEmployersAsync()
         {
             var employers = await _jobSeekerRepository.GetAllEmployersAsync();
