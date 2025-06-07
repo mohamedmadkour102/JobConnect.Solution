@@ -156,5 +156,14 @@ namespace JobConnect.Apis.Repository
 				.Include(a => a.JobSeeker)
 				.ToListAsync();
 		}
-	}
+        // New method to get JobSeeker by ID
+        public async Task<JobSeeker?> GetJobSeekerByIdAsync(string jobSeekerId)
+        {
+            if (string.IsNullOrEmpty(jobSeekerId))
+                return null;
+
+            return await _context.JobSeekers
+                .FirstOrDefaultAsync(js => js.Id == jobSeekerId);
+        }
+    }
 }

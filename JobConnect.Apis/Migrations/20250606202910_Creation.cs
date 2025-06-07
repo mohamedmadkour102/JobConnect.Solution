@@ -53,6 +53,24 @@ namespace JobConnect.Apis.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ContactMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContactMessages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -194,7 +212,6 @@ namespace JobConnect.Apis.Migrations
                     CurrentOrDesiredJob = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Bio = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CoverLetter = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Resumes = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Nationality = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MaritalStatus = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -223,7 +240,6 @@ namespace JobConnect.Apis.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MinSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     MaxSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
@@ -238,8 +254,6 @@ namespace JobConnect.Apis.Migrations
                     JobType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DaysRemaining = table.Column<int>(type: "int", nullable: false),
                     PostedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Responsibilities = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShortListed = table.Column<bool>(type: "bit", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EmployerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -255,6 +269,28 @@ namespace JobConnect.Apis.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "JobSeekerResumes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobSeekerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ResumePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResumeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSeekerResumes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobSeekerResumes_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Applications",
                 columns: table => new
                 {
@@ -266,7 +302,8 @@ namespace JobConnect.Apis.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CoverLetter = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Resume = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ApplicationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ApplicationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsShortlisted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -282,7 +319,47 @@ namespace JobConnect.Apis.Migrations
                         column: x => x.JobId,
                         principalTable: "Jobs",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobResponsibilities",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobId = table.Column<int>(type: "int", nullable: false),
+                    Responsibility = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobResponsibilities", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobResponsibilities_Jobs_JobId",
+                        column: x => x.JobId,
+                        principalTable: "Jobs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobTags",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobId = table.Column<int>(type: "int", nullable: false),
+                    Tag = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobTags", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobTags_Jobs_JobId",
+                        column: x => x.JobId,
+                        principalTable: "Jobs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -309,7 +386,7 @@ namespace JobConnect.Apis.Migrations
                         column: x => x.JobId,
                         principalTable: "Jobs",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -362,9 +439,24 @@ namespace JobConnect.Apis.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobResponsibilities_JobId",
+                table: "JobResponsibilities",
+                column: "JobId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Jobs_EmployerId",
                 table: "Jobs",
                 column: "EmployerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobSeekerResumes_JobSeekerId",
+                table: "JobSeekerResumes",
+                column: "JobSeekerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobTags_JobId",
+                table: "JobTags",
+                column: "JobId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SavedJobs_JobId",
@@ -397,6 +489,18 @@ namespace JobConnect.Apis.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "ContactMessages");
+
+            migrationBuilder.DropTable(
+                name: "JobResponsibilities");
+
+            migrationBuilder.DropTable(
+                name: "JobSeekerResumes");
+
+            migrationBuilder.DropTable(
+                name: "JobTags");
 
             migrationBuilder.DropTable(
                 name: "SavedJobs");

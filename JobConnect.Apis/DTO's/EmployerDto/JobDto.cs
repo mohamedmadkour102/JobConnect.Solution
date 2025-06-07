@@ -6,7 +6,9 @@
 		public string Title { get; set; } = string.Empty;
 		public string Status { get; set; } = string.Empty;
 		public string JobType { get; set; } = string.Empty;
-		public int DaysRemaining { get; set; }
+        public string WorkPlace { get; set; } = string.Empty;
+
+        public int DaysRemaining { get; set; }
 		public int ApplicationsCount { get; set; }
 		public string PostedDate { get; set; } = string.Empty;
 		public string Location { get; set; } = string.Empty;

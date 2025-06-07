@@ -132,6 +132,10 @@ namespace JobConnect.Apis.Migrations
                     b.Property<int>("Vacancies")
                         .HasColumnType("int");
 
+                    b.Property<string>("WorkPlace")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployerId");
@@ -657,7 +661,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("SavedJobs")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")

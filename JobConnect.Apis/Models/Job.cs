@@ -23,10 +23,11 @@ namespace JobConnect.Apis.Models
 		public string Status { get; set; } = string.Empty;
 		public int ApplicationCount { get; set; }
 		public string JobType { get; set; } = string.Empty;
+		public string WorkPlace {  get; set; } = string.Empty;
 		public int DaysRemaining { get; set; }
 		public DateTime PostedDate { get; set; } = DateTime.UtcNow;
 	
-		//public bool ShortListed { get; set; }
+		
 		public string Location { get; set; } = string.Empty;
 
 		// One-to-Many with Employer

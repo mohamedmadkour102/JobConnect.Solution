@@ -19,9 +19,11 @@ namespace JobConnect.Apis.IService
 		Task UpdateJobAsync(int jobId, string employerId, UpdateJobDto jobDto);
 		Task DeleteJobAsync(int jobId, string employerId);
 		Task<JobStatsDto> GetJobStatsAsync(string employerId);
-		Task AddToShortlistAsync(int jobId, string jobSeekerId); // New method
-		Task RemoveFromShortlistAsync(int jobId, string jobSeekerId); // New method
-		Task<IEnumerable<ShortlistedJobSeekerDto>> GetShortlistedJobSeekersAsync(int jobId, string employerId); // New method
+		Task AddToShortlistAsync(int jobId, string jobSeekerId);
+		Task RemoveFromShortlistAsync(int jobId, string jobSeekerId);
+		Task<IEnumerable<ShortlistedJobSeekerDto>> GetShortlistedJobSeekersAsync(int jobId, string employerId);
 		Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetJobsByEmployerPaginatedAsync(string employerId, int pageNumber, int pageSize);
-	}
+        Task DeleteEmployerAccountAsync(string employerId);
+        Task<ApplicantDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId);
+    }
 }
