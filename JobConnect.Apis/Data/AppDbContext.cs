@@ -126,6 +126,10 @@ namespace JobConnect.Repository.Data
         public DbSet<JobTag> JobTags { get; set; }
         public DbSet<JobResponsibility> JobResponsibilities { get; set; }
         public DbSet<ContactMessage> ContactMessages { get; set; }
+        public DbSet<JobSeekerCertification> JobSeekerCertifications { get; set; }
+        public DbSet<JobSeekerCompanyWorkedAt> JobSeekerCompanyWorkedAt { get; set; }
+        public DbSet<JobSeekerSkill> JobSeekerSkills { get; set; }
+        public DbSet<JobSeekerWorkedAs> JobSeekerWorkedAs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -191,6 +195,35 @@ namespace JobConnect.Repository.Data
                 .WithMany(j => j.Responsibilities)
                 .HasForeignKey(jr => jr.JobId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-Many: JobSeeker -> Certifications
+            modelBuilder.Entity<JobSeekerCertification>()
+                .HasOne(jc => jc.JobSeeker)
+                .WithMany(js => js.Certifications)
+                .HasForeignKey(jc => jc.JobSeekerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-Many: JobSeeker -> CompanyWorkedAt
+            modelBuilder.Entity<JobSeekerCompanyWorkedAt>()
+                .HasOne(jc => jc.JobSeeker)
+                .WithMany(js => js.CompanyWorkedAt)
+                .HasForeignKey(jc => jc.JobSeekerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-Many: JobSeeker -> Skills
+            modelBuilder.Entity<JobSeekerSkill>()
+                .HasOne(js => js.JobSeeker)
+                .WithMany(j => j.Skills)
+                .HasForeignKey(js => js.JobSeekerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // One-to-Many: JobSeeker -> WorkedAs
+            modelBuilder.Entity<JobSeekerWorkedAs>()
+                .HasOne(jw => jw.JobSeeker)
+                .WithMany(js => js.WorkedAs)
+                .HasForeignKey(jw => jw.JobSeekerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             modelBuilder.Entity<Employer>(e =>
             {

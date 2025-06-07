@@ -156,13 +156,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Seeding Admin
-//using (var scope = app.Services.CreateScope())
-//{
-//    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-//    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-//    await DataSeeder.SeedAdmin(userManager, roleManager);
-//}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -213,7 +206,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-    c.RoutePrefix = string.Empty;
+ //   c.RoutePrefix = string.Empty;
+    c.RoutePrefix = "swagger";
 });
 
 app.UseStaticFiles();

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace JobConnect.Apis.Migrations
 {
     /// <inheritdoc />
-    public partial class Creation : Migration
+    public partial class creation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -252,6 +252,7 @@ namespace JobConnect.Apis.Migrations
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ApplicationCount = table.Column<int>(type: "int", nullable: false),
                     JobType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WorkPlace = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DaysRemaining = table.Column<int>(type: "int", nullable: false),
                     PostedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -266,6 +267,51 @@ namespace JobConnect.Apis.Migrations
                         principalTable: "Employers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobSeekerCertifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CertificationName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IssuingOrganization = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IssueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    JobSeekerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSeekerCertifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobSeekerCertifications_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobSeekerCompanyWorkedAt",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    JobSeekerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSeekerCompanyWorkedAt", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobSeekerCompanyWorkedAt_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -284,6 +330,49 @@ namespace JobConnect.Apis.Migrations
                     table.PrimaryKey("PK_JobSeekerResumes", x => x.Id);
                     table.ForeignKey(
                         name: "FK_JobSeekerResumes_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobSeekerSkills",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SkillName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProficiencyLevel = table.Column<int>(type: "int", nullable: false),
+                    JobSeekerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSeekerSkills", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobSeekerSkills_JobSeekers_JobSeekerId",
+                        column: x => x.JobSeekerId,
+                        principalTable: "JobSeekers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobSeekerWorkedAs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JobTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    JobSeekerId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobSeekerWorkedAs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_JobSeekerWorkedAs_JobSeekers_JobSeekerId",
                         column: x => x.JobSeekerId,
                         principalTable: "JobSeekers",
                         principalColumn: "Id",
@@ -449,8 +538,28 @@ namespace JobConnect.Apis.Migrations
                 column: "EmployerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobSeekerCertifications_JobSeekerId",
+                table: "JobSeekerCertifications",
+                column: "JobSeekerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobSeekerCompanyWorkedAt_JobSeekerId",
+                table: "JobSeekerCompanyWorkedAt",
+                column: "JobSeekerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_JobSeekerResumes_JobSeekerId",
                 table: "JobSeekerResumes",
+                column: "JobSeekerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobSeekerSkills_JobSeekerId",
+                table: "JobSeekerSkills",
+                column: "JobSeekerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobSeekerWorkedAs_JobSeekerId",
+                table: "JobSeekerWorkedAs",
                 column: "JobSeekerId");
 
             migrationBuilder.CreateIndex(
@@ -497,7 +606,19 @@ namespace JobConnect.Apis.Migrations
                 name: "JobResponsibilities");
 
             migrationBuilder.DropTable(
+                name: "JobSeekerCertifications");
+
+            migrationBuilder.DropTable(
+                name: "JobSeekerCompanyWorkedAt");
+
+            migrationBuilder.DropTable(
                 name: "JobSeekerResumes");
+
+            migrationBuilder.DropTable(
+                name: "JobSeekerSkills");
+
+            migrationBuilder.DropTable(
+                name: "JobSeekerWorkedAs");
 
             migrationBuilder.DropTable(
                 name: "JobTags");

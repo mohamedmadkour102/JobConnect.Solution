@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobConnect.Apis.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250506211613_updateeDB")]
-    partial class updateeDB
+    [Migration("20250607161932_creation")]
+    partial class creation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -135,6 +135,10 @@ namespace JobConnect.Apis.Migrations
                     b.Property<int>("Vacancies")
                         .HasColumnType("int");
 
+                    b.Property<string>("WorkPlace")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("EmployerId");
@@ -240,6 +244,159 @@ namespace JobConnect.Apis.Migrations
                     b.HasIndex("JobSeekerId");
 
                     b.ToTable("SavedJobs");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.ContactMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContactMessages");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerCertification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CertificationName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IssuingOrganization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("JobSeekerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobSeekerId");
+
+                    b.ToTable("JobSeekerCertifications");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerCompanyWorkedAt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JobSeekerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobSeekerId");
+
+                    b.ToTable("JobSeekerCompanyWorkedAt");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerSkill", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("JobSeekerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ProficiencyLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SkillName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobSeekerId");
+
+                    b.ToTable("JobSeekerSkills");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerWorkedAs", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JobSeekerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("JobTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobSeekerId");
+
+                    b.ToTable("JobSeekerWorkedAs");
                 });
 
             modelBuilder.Entity("JobConnect.Core.Models.User", b =>
@@ -561,7 +718,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("Applications")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
@@ -624,7 +781,7 @@ namespace JobConnect.Apis.Migrations
                     b.HasOne("JobConnect.Apis.Models.Job", "Job")
                         .WithMany("SavedJobs")
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
@@ -634,6 +791,50 @@ namespace JobConnect.Apis.Migrations
                         .IsRequired();
 
                     b.Navigation("Job");
+
+                    b.Navigation("JobSeeker");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerCertification", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
+                        .WithMany("Certifications")
+                        .HasForeignKey("JobSeekerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobSeeker");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerCompanyWorkedAt", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
+                        .WithMany("CompanyWorkedAt")
+                        .HasForeignKey("JobSeekerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobSeeker");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerSkill", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
+                        .WithMany("Skills")
+                        .HasForeignKey("JobSeekerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobSeeker");
+                });
+
+            modelBuilder.Entity("JobConnect.Core.Models.JobSeekerWorkedAs", b =>
+                {
+                    b.HasOne("JobConnect.Core.Models.JobSeeker", "JobSeeker")
+                        .WithMany("WorkedAs")
+                        .HasForeignKey("JobSeekerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("JobSeeker");
                 });
@@ -727,9 +928,17 @@ namespace JobConnect.Apis.Migrations
                 {
                     b.Navigation("Applications");
 
+                    b.Navigation("Certifications");
+
+                    b.Navigation("CompanyWorkedAt");
+
                     b.Navigation("Resumes");
 
                     b.Navigation("SavedJobs");
+
+                    b.Navigation("Skills");
+
+                    b.Navigation("WorkedAs");
                 });
 #pragma warning restore 612, 618
         }
