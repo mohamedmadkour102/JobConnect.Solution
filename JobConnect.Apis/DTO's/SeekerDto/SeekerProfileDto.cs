@@ -32,38 +32,14 @@
         public List<ResumeDto> Resumes { get; set; } = new List<ResumeDto>();
     }
 
-    public class CertificationDto
-    {
-        public string CertificationName { get; set; } = string.Empty;
-        public string IssuingOrganization { get; set; } = string.Empty;
-        public DateTime IssueDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-    }
 
-    public class CompanyWorkedAtDto
-    {
-        public string CompanyName { get; set; } = string.Empty;
-        public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-    }
 
-    public class SkillDto
-    {
-        public string SkillName { get; set; } = string.Empty;
-        public int ProficiencyLevel { get; set; }
-    }
 
-    public class WorkedAsDto
-    {
-        public string JobTitle { get; set; } = string.Empty;
-        public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-    }
 
-    public class ResumeDto
-    {
-        public string ResumePath { get; set; } = string.Empty;
-        public string ResumeName { get; set; } = string.Empty;
-        public DateTime UploadDate { get; set; }
-    }
+
+
+
+
+
 }
+

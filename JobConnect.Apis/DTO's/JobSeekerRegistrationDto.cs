@@ -34,13 +34,6 @@ namespace JobConnect.Apis.DTO_s
 		[MinLength(4, ErrorMessage = "Address must be at least 4 characters.")]
 		public string Address { get; set; }
 
-		[Range(0, int.MaxValue, ErrorMessage = "Years of experience must be a positive number.")]
-		public int? YearsOfExperience { get; set; }
 
-		[Required(ErrorMessage = "Degree is required.")]
-		public string Degree { get; set; }
-
-		[Required(ErrorMessage = "Current or desired job title is required.")]
-		public string CurrentOrDesiredJob { get; set; }
 	}
 }

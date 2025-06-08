@@ -2,13 +2,9 @@
 using JobConnect.Apis.Services;
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace JobConnect.Apis.Controllers
 {
@@ -48,15 +44,10 @@ namespace JobConnect.Apis.Controllers
 					FirstName = dto.FirstName,
 					LastName = dto.LastName,
 					Email = dto.Email,
-					UserName = $"{dto.FirstName}{dto.LastName}",
 					PhoneNumber = dto.PhoneNumber,
-					CompanyName = dto.CompanyName,
-					CompanySize = dto.CompanySize,
-					Website = dto.Website,
-					Industry = dto.Industry,
-					Address = dto.Address,
-					CompanyDescription = dto.CompanyDescription
-				};
+                    UserName = $"{dto.FirstName}{dto.LastName}{Guid.NewGuid().ToString("N").Substring(0, 6)}"
+
+                };
 
 				var result = await _userManager.CreateAsync(employer, dto.Password);
 				if (!result.Succeeded)
@@ -99,13 +90,11 @@ namespace JobConnect.Apis.Controllers
 					FirstName = dto.FirstName,
 					LastName = dto.LastName,
 					Email = dto.Email,
-					UserName = $"{dto.FirstName}{dto.LastName}",
 					PhoneNumber = dto.PhoneNumber,
 					Address = dto.Address,
-					YearsOfExperience = dto.YearsOfExperience,
-					Degree = dto.Degree,
-					CurrentOrDesiredJob = dto.CurrentOrDesiredJob
-				};
+                    UserName = $"{dto.FirstName}{dto.LastName}{Guid.NewGuid().ToString("N").Substring(0, 6)}"
+
+                };
 
 				var result = await _userManager.CreateAsync(jobSeeker, dto.Password);
 				if (!result.Succeeded)

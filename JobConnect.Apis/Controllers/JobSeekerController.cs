@@ -397,7 +397,7 @@ namespace JobConnect.Apis.Controllers
             if (jobSeeker == null)
                 return NotFound(new { message = "JobSeeker not found." });
 
-            // تحديث البيانات مع الاحتفاظ بالقيم القديمة لو الـ updateDto فيه null أو فارغ
+          
             if (!string.IsNullOrEmpty(updateDto.Address)) jobSeeker.Address = updateDto.Address;
             if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
             if (!string.IsNullOrEmpty(updateDto.Degree)) jobSeeker.Degree = updateDto.Degree;
@@ -417,7 +417,6 @@ namespace JobConnect.Apis.Controllers
             if (!string.IsNullOrEmpty(updateDto.CollegeName)) jobSeeker.CollegeName = updateDto.CollegeName;
             if (!string.IsNullOrEmpty(updateDto.University)) jobSeeker.University = updateDto.University;
 
-            // تحديث الـ Collections (إضافة/استبدال بس مش حذف القديمة إلا لو فيه قيم جديدة)
             if (updateDto.Certifications != null && updateDto.Certifications.Any())
                 jobSeeker.Certifications = updateDto.Certifications.Select(c => new JobSeekerCertification
                 {
@@ -461,6 +460,22 @@ namespace JobConnect.Apis.Controllers
             var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             await _jobSeekerService.DeleteJobSeekerAsync(jobSeekerId);
             return Ok(new { message = "Profile deleted successfully." });
+        }
+        [HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
+        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId)
+        {
+            if (jobId <= 0 || resumeId <= 0)
+                return BadRequest(new { message = "Invalid job ID or resume ID." });
+
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var applyDto = new ApplyForJobByResumeIdDto
+            {
+                JobId = jobId,
+                ResumeId = resumeId
+            };
+
+            await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+            return Ok(new { message = "Application submitted successfully." });
         }
     }
 }

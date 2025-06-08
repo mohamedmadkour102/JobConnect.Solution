@@ -37,5 +37,6 @@ namespace JobConnect.Apis.IService
         Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
         Task UpdateJobSeekerAsync(JobSeeker jobSeeker);
         Task DeleteJobSeekerAsync(string jobSeekerId);
+        Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
     }
 }

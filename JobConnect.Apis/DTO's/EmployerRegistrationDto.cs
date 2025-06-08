@@ -32,25 +32,6 @@ namespace JobConnect.Apis.DTO_s
 													"1 uppercase letter, 1 lowercase letter, 1 number, and " +
 													"1 special character (!@#$%&*()_+}})")]
 		public string Password { get; set; }
-		[Required]
-		[MinLength(4, ErrorMessage = "Address must be at least 4 characters.")]
-		public string Address { get; set; }
 
-		public string CompanyName { get; set; }
-		public string CompanySize { get; set; }
-		public string Website { get; set; }
-		public string Industry { get; set; }
-		public string CompanyDescription { get; set; }
-
-
-		[Required(ErrorMessage = "User experience is required.")]
-		[Range(0, int.MaxValue, ErrorMessage = "User experience must be a positive number.")]
-		public int UserExperience { get; set; }
-
-		[Required(ErrorMessage = "Title is required.")]
-		public string Title { get; set; }
-
-		[Required(ErrorMessage = "Degree is required.")]
-		public string Degree { get; set; }
 	}
 }
