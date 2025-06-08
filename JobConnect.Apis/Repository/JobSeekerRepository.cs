@@ -217,34 +217,79 @@ namespace JobConnect.Apis.Repository
             await SaveChangesAsync();
         }
 
+        //    public async Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId)
+        //    {
+        //        var jobSeeker = await GetSeekerProfileAsync(jobSeekerId);
+        //        if (jobSeeker == null) return null;
+
+        //        var totalFields = 22;
+        //        var completedFields = 4; 
+
+        //        var fieldDetails = new List<FieldStatus>
+        //    {
+        //        new FieldStatus { FieldName = "Address", Status = string.IsNullOrEmpty(jobSeeker.Address) ? "Not Complete" : "Complete", Value = jobSeeker.Address },
+        //        new FieldStatus { FieldName = "YearsOfExperience", Status = jobSeeker.YearsOfExperience.HasValue ? "Complete" : "Not Complete", Value = jobSeeker.YearsOfExperience?.ToString() },
+        //        new FieldStatus { FieldName = "Degree", Status = !string.IsNullOrEmpty(jobSeeker.Degree) ? "Complete" : "Not Complete", Value = jobSeeker.Degree },
+        //        new FieldStatus { FieldName = "CurrentOrDesiredJob", Status = !string.IsNullOrEmpty(jobSeeker.CurrentOrDesiredJob) ? "Complete" : "Not Complete", Value = jobSeeker.CurrentOrDesiredJob },
+        //        new FieldStatus { FieldName = "Bio", Status = !string.IsNullOrEmpty(jobSeeker.Bio) ? "Complete" : "Not Complete", Value = jobSeeker.Bio },
+        //        new FieldStatus { FieldName = "CoverLetter", Status = !string.IsNullOrEmpty(jobSeeker.CoverLetter) ? "Complete" : "Not Complete", Value = jobSeeker.CoverLetter },
+        //        new FieldStatus { FieldName = "DateOfBirth", Status = jobSeeker.DateOfBirth.HasValue ? "Complete" : "Not Complete", Value = jobSeeker.DateOfBirth?.ToString() },
+        //        new FieldStatus { FieldName = "Nationality", Status = !string.IsNullOrEmpty(jobSeeker.Nationality) ? "Complete" : "Not Complete", Value = jobSeeker.Nationality },
+        //        new FieldStatus { FieldName = "MaritalStatus", Status = !string.IsNullOrEmpty(jobSeeker.MaritalStatus) ? "Complete" : "Not Complete", Value = jobSeeker.MaritalStatus },
+        //        new FieldStatus { FieldName = "Gender", Status = !string.IsNullOrEmpty(jobSeeker.Gender) ? "Complete" : "Not Complete", Value = jobSeeker.Gender },
+        //        new FieldStatus { FieldName = "Education", Status = !string.IsNullOrEmpty(jobSeeker.Education) ? "Complete" : "Not Complete", Value = jobSeeker.Education },
+        //        new FieldStatus { FieldName = "Portfolio", Status = !string.IsNullOrEmpty(jobSeeker.Portfolio) ? "Complete" : "Not Complete", Value = jobSeeker.Portfolio },
+        //        new FieldStatus { FieldName = "FacebookLink", Status = !string.IsNullOrEmpty(jobSeeker.FacebookLink) ? "Complete" : "Not Complete", Value = jobSeeker.FacebookLink },
+        //        new FieldStatus { FieldName = "TwitterLink", Status = !string.IsNullOrEmpty(jobSeeker.TwitterLink) ? "Complete" : "Not Complete", Value = jobSeeker.TwitterLink },
+        //        new FieldStatus { FieldName = "InstagramLink", Status = !string.IsNullOrEmpty(jobSeeker.InstagramLink) ? "Complete" : "Not Complete", Value = jobSeeker.InstagramLink },
+        //        new FieldStatus { FieldName = "LinkedInLink", Status = !string.IsNullOrEmpty(jobSeeker.LinkedInLink) ? "Complete" : "Not Complete", Value = jobSeeker.LinkedInLink },
+        //        new FieldStatus { FieldName = "CollegeName", Status = !string.IsNullOrEmpty(jobSeeker.CollegeName) ? "Complete" : "Not Complete", Value = jobSeeker.CollegeName },
+        //        new FieldStatus { FieldName = "University", Status = !string.IsNullOrEmpty(jobSeeker.University) ? "Complete" : "Not Complete", Value = jobSeeker.University }
+        //    };
+
+        //        completedFields += fieldDetails.Count(f => f.Status == "Complete");
+
+        //        var completionPercentage = (double)completedFields / totalFields * 100;
+
+        //        return new ProfileCompletionDto
+        //        {
+        //            TotalFields = totalFields,
+        //            CompletedFields = completedFields,
+        //            CompletionPercentage = Math.Round(completionPercentage, 2),
+        //            FieldDetails = fieldDetails
+        //        };
+        //    }
+        //}
+
+
         public async Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId)
         {
             var jobSeeker = await GetSeekerProfileAsync(jobSeekerId);
             if (jobSeeker == null) return null;
 
-            var totalFields = 22; // 4 إلزامية (FirstName, LastName, Email, PhoneNumber) + 18 اختيارية
-            var completedFields = 4; // الإلزامية بتاعت التسجيل
+            var totalFields = 22; 
+            var completedFields = 4;
 
             var fieldDetails = new List<FieldStatus>
         {
-            new FieldStatus { FieldName = "Address", Status = string.IsNullOrEmpty(jobSeeker.Address) ? "Not Complete" : "Complete", Value = jobSeeker.Address },
-            new FieldStatus { FieldName = "YearsOfExperience", Status = jobSeeker.YearsOfExperience.HasValue ? "Complete" : "Not Complete", Value = jobSeeker.YearsOfExperience?.ToString() },
-            new FieldStatus { FieldName = "Degree", Status = !string.IsNullOrEmpty(jobSeeker.Degree) ? "Complete" : "Not Complete", Value = jobSeeker.Degree },
-            new FieldStatus { FieldName = "CurrentOrDesiredJob", Status = !string.IsNullOrEmpty(jobSeeker.CurrentOrDesiredJob) ? "Complete" : "Not Complete", Value = jobSeeker.CurrentOrDesiredJob },
-            new FieldStatus { FieldName = "Bio", Status = !string.IsNullOrEmpty(jobSeeker.Bio) ? "Complete" : "Not Complete", Value = jobSeeker.Bio },
-            new FieldStatus { FieldName = "CoverLetter", Status = !string.IsNullOrEmpty(jobSeeker.CoverLetter) ? "Complete" : "Not Complete", Value = jobSeeker.CoverLetter },
-            new FieldStatus { FieldName = "DateOfBirth", Status = jobSeeker.DateOfBirth.HasValue ? "Complete" : "Not Complete", Value = jobSeeker.DateOfBirth?.ToString() },
-            new FieldStatus { FieldName = "Nationality", Status = !string.IsNullOrEmpty(jobSeeker.Nationality) ? "Complete" : "Not Complete", Value = jobSeeker.Nationality },
-            new FieldStatus { FieldName = "MaritalStatus", Status = !string.IsNullOrEmpty(jobSeeker.MaritalStatus) ? "Complete" : "Not Complete", Value = jobSeeker.MaritalStatus },
-            new FieldStatus { FieldName = "Gender", Status = !string.IsNullOrEmpty(jobSeeker.Gender) ? "Complete" : "Not Complete", Value = jobSeeker.Gender },
-            new FieldStatus { FieldName = "Education", Status = !string.IsNullOrEmpty(jobSeeker.Education) ? "Complete" : "Not Complete", Value = jobSeeker.Education },
-            new FieldStatus { FieldName = "Portfolio", Status = !string.IsNullOrEmpty(jobSeeker.Portfolio) ? "Complete" : "Not Complete", Value = jobSeeker.Portfolio },
-            new FieldStatus { FieldName = "FacebookLink", Status = !string.IsNullOrEmpty(jobSeeker.FacebookLink) ? "Complete" : "Not Complete", Value = jobSeeker.FacebookLink },
-            new FieldStatus { FieldName = "TwitterLink", Status = !string.IsNullOrEmpty(jobSeeker.TwitterLink) ? "Complete" : "Not Complete", Value = jobSeeker.TwitterLink },
-            new FieldStatus { FieldName = "InstagramLink", Status = !string.IsNullOrEmpty(jobSeeker.InstagramLink) ? "Complete" : "Not Complete", Value = jobSeeker.InstagramLink },
-            new FieldStatus { FieldName = "LinkedInLink", Status = !string.IsNullOrEmpty(jobSeeker.LinkedInLink) ? "Complete" : "Not Complete", Value = jobSeeker.LinkedInLink },
-            new FieldStatus { FieldName = "CollegeName", Status = !string.IsNullOrEmpty(jobSeeker.CollegeName) ? "Complete" : "Not Complete", Value = jobSeeker.CollegeName },
-            new FieldStatus { FieldName = "University", Status = !string.IsNullOrEmpty(jobSeeker.University) ? "Complete" : "Not Complete", Value = jobSeeker.University }
+            new FieldStatus { FieldName = "Address", Status = string.IsNullOrWhiteSpace(jobSeeker.Address) || jobSeeker.Address == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Address },
+            new FieldStatus { FieldName = "YearsOfExperience", Status = jobSeeker.YearsOfExperience.HasValue ? "Completed" : "Not Completed", Value = jobSeeker.YearsOfExperience?.ToString() },
+            new FieldStatus { FieldName = "Degree", Status = string.IsNullOrWhiteSpace(jobSeeker.Degree) || jobSeeker.Degree == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Degree },
+            new FieldStatus { FieldName = "CurrentOrDesiredJob", Status = string.IsNullOrWhiteSpace(jobSeeker.CurrentOrDesiredJob) || jobSeeker.CurrentOrDesiredJob == "string" ? "Not Completed" : "Completed", Value = jobSeeker.CurrentOrDesiredJob },
+            new FieldStatus { FieldName = "Bio", Status = string.IsNullOrWhiteSpace(jobSeeker.Bio) || jobSeeker.Bio == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Bio },
+            new FieldStatus { FieldName = "CoverLetter", Status = string.IsNullOrWhiteSpace(jobSeeker.CoverLetter) || jobSeeker.CoverLetter == "string" ? "Not Completed" : "Completed", Value = jobSeeker.CoverLetter },
+            new FieldStatus { FieldName = "DateOfBirth", Status = jobSeeker.DateOfBirth.HasValue ? "Completed" : "Not Completed", Value = jobSeeker.DateOfBirth?.ToString() },
+            new FieldStatus { FieldName = "Nationality", Status = string.IsNullOrWhiteSpace(jobSeeker.Nationality) || jobSeeker.Nationality == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Nationality },
+            new FieldStatus { FieldName = "MaritalStatus", Status = string.IsNullOrWhiteSpace(jobSeeker.MaritalStatus) || jobSeeker.MaritalStatus == "string" ? "Not Completed" : "Completed", Value = jobSeeker.MaritalStatus },
+            new FieldStatus { FieldName = "Gender", Status = string.IsNullOrWhiteSpace(jobSeeker.Gender) || jobSeeker.Gender == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Gender },
+            new FieldStatus { FieldName = "Education", Status = string.IsNullOrWhiteSpace(jobSeeker.Education) || jobSeeker.Education == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Education },
+            new FieldStatus { FieldName = "Portfolio", Status = string.IsNullOrWhiteSpace(jobSeeker.Portfolio) || jobSeeker.Portfolio == "string" ? "Not Completed" : "Completed", Value = jobSeeker.Portfolio },
+            new FieldStatus { FieldName = "FacebookLink", Status = string.IsNullOrWhiteSpace(jobSeeker.FacebookLink) || jobSeeker.FacebookLink == "string" ? "Not Completed" : "Completed", Value = jobSeeker.FacebookLink },
+            new FieldStatus { FieldName = "TwitterLink", Status = string.IsNullOrWhiteSpace(jobSeeker.TwitterLink) || jobSeeker.TwitterLink == "string" ? "Not Completed" : "Completed", Value = jobSeeker.TwitterLink },
+            new FieldStatus { FieldName = "InstagramLink", Status = string.IsNullOrWhiteSpace(jobSeeker.InstagramLink) || jobSeeker.InstagramLink == "string" ? "Not Completed" : "Completed", Value = jobSeeker.InstagramLink },
+            new FieldStatus { FieldName = "LinkedInLink", Status = string.IsNullOrWhiteSpace(jobSeeker.LinkedInLink) || jobSeeker.LinkedInLink == "string" ? "Not Completed" : "Completed", Value = jobSeeker.LinkedInLink },
+            new FieldStatus { FieldName = "CollegeName", Status = string.IsNullOrWhiteSpace(jobSeeker.CollegeName) || jobSeeker.CollegeName == "string" ? "Not Completed" : "Completed", Value = jobSeeker.CollegeName },
+            new FieldStatus { FieldName = "University", Status = string.IsNullOrWhiteSpace(jobSeeker.University) || jobSeeker.University == "string" ? "Not Completed" : "Completed", Value = jobSeeker.University }
         };
 
             completedFields += fieldDetails.Count(f => f.Status == "Complete");
@@ -259,7 +304,5 @@ namespace JobConnect.Apis.Repository
                 FieldDetails = fieldDetails
             };
         }
-
-
     }
 }

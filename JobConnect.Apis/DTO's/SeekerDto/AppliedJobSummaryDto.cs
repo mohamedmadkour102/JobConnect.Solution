@@ -15,5 +15,9 @@ namespace JobConnect.Apis.DTO_s.SeekerDto
         public string JobType { get; set; } = string.Empty;
         public string WorkPlace { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public string Experience { get; set; } = string.Empty;
+        public DateTime PostedDate { get; set; } = DateTime.UtcNow;
+
+
     }
 }

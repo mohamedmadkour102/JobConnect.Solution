@@ -239,7 +239,7 @@ namespace JobConnect.Apis.Controllers
             if (jobSeeker == null)
                 return NotFound(new { message = "JobSeeker not found." });
 
-
+            // Update scalar properties if provided
             if (!string.IsNullOrEmpty(updateDto.Address)) jobSeeker.Address = updateDto.Address;
             if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
             if (!string.IsNullOrEmpty(updateDto.Degree)) jobSeeker.Degree = updateDto.Degree;
@@ -259,169 +259,98 @@ namespace JobConnect.Apis.Controllers
             if (!string.IsNullOrEmpty(updateDto.CollegeName)) jobSeeker.CollegeName = updateDto.CollegeName;
             if (!string.IsNullOrEmpty(updateDto.University)) jobSeeker.University = updateDto.University;
 
+            // Append Certifications (instead of full replace)
             if (updateDto.Certifications != null && updateDto.Certifications.Any())
-                jobSeeker.Certifications = updateDto.Certifications.Select(c => new JobSeekerCertification
+            {
+                foreach (var c in updateDto.Certifications)
                 {
-                    CertificationName = c.CertificationName,
-                    IssuingOrganization = c.IssuingOrganization,
-                    IssueDate = c.IssueDate,
-                    ExpiryDate = c.ExpiryDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.Certifications.Any(x =>
+                        x.CertificationName == c.CertificationName &&
+                        x.IssuingOrganization == c.IssuingOrganization &&
+                        x.IssueDate == c.IssueDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.Certifications.Add(new JobSeekerCertification
+                        {
+                            CertificationName = c.CertificationName,
+                            IssuingOrganization = c.IssuingOrganization,
+                            IssueDate = c.IssueDate,
+                            ExpiryDate = c.ExpiryDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append CompanyWorkedAt
             if (updateDto.CompanyWorkedAt != null && updateDto.CompanyWorkedAt.Any())
-                jobSeeker.CompanyWorkedAt = updateDto.CompanyWorkedAt.Select(c => new JobSeekerCompanyWorkedAt
+            {
+                foreach (var c in updateDto.CompanyWorkedAt)
                 {
-                    CompanyName = c.CompanyName,
-                    StartDate = c.StartDate,
-                    EndDate = c.EndDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.CompanyWorkedAt.Any(x =>
+                        x.CompanyName == c.CompanyName &&
+                        x.StartDate == c.StartDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
+                        {
+                            CompanyName = c.CompanyName,
+                            StartDate = c.StartDate,
+                            EndDate = c.EndDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append Skills
             if (updateDto.Skills != null && updateDto.Skills.Any())
-                jobSeeker.Skills = updateDto.Skills.Select(s => new JobSeekerSkill
+            {
+                foreach (var s in updateDto.Skills)
                 {
-                    SkillName = s.SkillName,
-                    ProficiencyLevel = s.ProficiencyLevel,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.Skills.Any(x => x.SkillName == s.SkillName);
+
+                    if (!exists)
+                    {
+                        jobSeeker.Skills.Add(new JobSeekerSkill
+                        {
+                            SkillName = s.SkillName,
+                            ProficiencyLevel = s.ProficiencyLevel,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append WorkedAs
             if (updateDto.WorkedAs != null && updateDto.WorkedAs.Any())
-                jobSeeker.WorkedAs = updateDto.WorkedAs.Select(w => new JobSeekerWorkedAs
+            {
+                foreach (var w in updateDto.WorkedAs)
                 {
-                    JobTitle = w.JobTitle,
-                    StartDate = w.StartDate,
-                    EndDate = w.EndDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.WorkedAs.Any(x =>
+                        x.JobTitle == w.JobTitle &&
+                        x.StartDate == w.StartDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
+                        {
+                            JobTitle = w.JobTitle,
+                            StartDate = w.StartDate,
+                            EndDate = w.EndDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
 
             await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker);
+
             return Ok(new { message = "Profile updated successfully." });
         }
-        //[HttpPut("UpdateSeekerProfile")]
-        //public async Task<IActionResult> UpdateSeekerProfile([FromBody] UpdateSeekerProfileDto updateDto)
-        //{
-        //    if (updateDto == null)
-        //        return BadRequest(new { message = "Invalid profile data." });
 
-        //    var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var jobSeeker = await _jobSeekerService.GetSeekerProfileAsync(jobSeekerId);
-        //    if (jobSeeker == null)
-        //        return NotFound(new { message = "JobSeeker not found." });
-
-        //    // جلب النسخة الأصلية من الـ Database
-        //    var originalJobSeeker = await _context.JobSeekers
-        //        .AsNoTracking()
-        //        .FirstOrDefaultAsync(js => js.Id == jobSeekerId);
-
-        //    if (originalJobSeeker == null)
-        //        return NotFound(new { message = "Original profile not found." });
-
-        //    // إنشاء كائن جديد للتعديل الجزئي
-        //    var jobSeekerToUpdate = await _context.JobSeekers
-        //        .FirstOrDefaultAsync(js => js.Id == jobSeekerId) ?? jobSeeker;
-
-        //    // تحديث الحقول اللي فيها قيمة في الـ updateDto
-        //    if (!string.IsNullOrEmpty(updateDto.Address) && updateDto.Address != originalJobSeeker.Address)
-        //        jobSeekerToUpdate.Address = updateDto.Address;
-        //    if (updateDto.YearsOfExperience.HasValue && updateDto.YearsOfExperience != originalJobSeeker.YearsOfExperience)
-        //        jobSeekerToUpdate.YearsOfExperience = updateDto.YearsOfExperience;
-        //    if (!string.IsNullOrEmpty(updateDto.Degree) && updateDto.Degree != originalJobSeeker.Degree)
-        //        jobSeekerToUpdate.Degree = updateDto.Degree;
-        //    if (!string.IsNullOrEmpty(updateDto.CurrentOrDesiredJob) && updateDto.CurrentOrDesiredJob != originalJobSeeker.CurrentOrDesiredJob)
-        //        jobSeekerToUpdate.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
-        //    if (!string.IsNullOrEmpty(updateDto.Bio) && updateDto.Bio != originalJobSeeker.Bio)
-        //        jobSeekerToUpdate.Bio = updateDto.Bio;
-        //    if (!string.IsNullOrEmpty(updateDto.CoverLetter) && updateDto.CoverLetter != originalJobSeeker.CoverLetter)
-        //        jobSeekerToUpdate.CoverLetter = updateDto.CoverLetter;
-        //    if (updateDto.DateOfBirth.HasValue && updateDto.DateOfBirth != originalJobSeeker.DateOfBirth)
-        //        jobSeekerToUpdate.DateOfBirth = updateDto.DateOfBirth;
-        //    if (!string.IsNullOrEmpty(updateDto.Nationality) && updateDto.Nationality != originalJobSeeker.Nationality)
-        //        jobSeekerToUpdate.Nationality = updateDto.Nationality;
-        //    if (!string.IsNullOrEmpty(updateDto.MaritalStatus) && updateDto.MaritalStatus != originalJobSeeker.MaritalStatus)
-        //        jobSeekerToUpdate.MaritalStatus = updateDto.MaritalStatus;
-        //    if (!string.IsNullOrEmpty(updateDto.Gender) && updateDto.Gender != originalJobSeeker.Gender)
-        //        jobSeekerToUpdate.Gender = updateDto.Gender;
-        //    if (!string.IsNullOrEmpty(updateDto.Education) && updateDto.Education != originalJobSeeker.Education)
-        //        jobSeekerToUpdate.Education = updateDto.Education;
-        //    if (!string.IsNullOrEmpty(updateDto.Portfolio) && updateDto.Portfolio != originalJobSeeker.Portfolio)
-        //        jobSeekerToUpdate.Portfolio = updateDto.Portfolio;
-        //    if (!string.IsNullOrEmpty(updateDto.FacebookLink) && updateDto.FacebookLink != originalJobSeeker.FacebookLink)
-        //        jobSeekerToUpdate.FacebookLink = updateDto.FacebookLink;
-        //    if (!string.IsNullOrEmpty(updateDto.TwitterLink) && updateDto.TwitterLink != originalJobSeeker.TwitterLink)
-        //        jobSeekerToUpdate.TwitterLink = updateDto.TwitterLink;
-        //    if (!string.IsNullOrEmpty(updateDto.InstagramLink) && updateDto.InstagramLink != originalJobSeeker.InstagramLink)
-        //        jobSeekerToUpdate.InstagramLink = updateDto.InstagramLink;
-        //    if (!string.IsNullOrEmpty(updateDto.LinkedInLink) && updateDto.LinkedInLink != originalJobSeeker.LinkedInLink)
-        //        jobSeekerToUpdate.LinkedInLink = updateDto.LinkedInLink;
-        //    if (!string.IsNullOrEmpty(updateDto.CollegeName) && updateDto.CollegeName != originalJobSeeker.CollegeName)
-        //        jobSeekerToUpdate.CollegeName = updateDto.CollegeName;
-        //    if (!string.IsNullOrEmpty(updateDto.University) && updateDto.University != originalJobSeeker.University)
-        //        jobSeekerToUpdate.University = updateDto.University;
-
-        //    // تحديث العلاقات بشكل آمن
-        //    if (updateDto.Certifications != null && updateDto.Certifications.Any())
-        //    {
-        //        var existingCertifications = jobSeekerToUpdate.Certifications.ToList();
-        //        foreach (var cert in existingCertifications)
-        //        {
-        //            _context.JobSeekerCertifications.Remove(cert);
-        //        }
-        //        jobSeekerToUpdate.Certifications = updateDto.Certifications.Select(c => new JobSeekerCertification
-        //        {
-        //            CertificationName = c.CertificationName,
-        //            IssuingOrganization = c.IssuingOrganization,
-        //            IssueDate = c.IssueDate,
-        //            ExpiryDate = c.ExpiryDate,
-        //            JobSeekerId = jobSeekerId
-        //        }).ToList();
-        //    }
-        //    if (updateDto.CompanyWorkedAt != null && updateDto.CompanyWorkedAt.Any())
-        //    {
-        //        var existingCompanies = jobSeekerToUpdate.CompanyWorkedAt.ToList();
-        //        foreach (var company in existingCompanies)
-        //        {
-        //            _context.JobSeekerCompanyWorkedAt.Remove(company);
-        //        }
-        //        jobSeekerToUpdate.CompanyWorkedAt = updateDto.CompanyWorkedAt.Select(c => new JobSeekerCompanyWorkedAt
-        //        {
-        //            CompanyName = c.CompanyName,
-        //            StartDate = c.StartDate,
-        //            EndDate = c.EndDate,
-        //            JobSeekerId = jobSeekerId
-        //        }).ToList();
-        //    }
-        //    if (updateDto.Skills != null && updateDto.Skills.Any())
-        //    {
-        //        var existingSkills = jobSeekerToUpdate.Skills.ToList();
-        //        foreach (var skill in existingSkills)
-        //        {
-        //            _context.JobSeekerSkills.Remove(skill);
-        //        }
-        //        jobSeekerToUpdate.Skills = updateDto.Skills.Select(s => new JobSeekerSkill
-        //        {
-        //            SkillName = s.SkillName,
-        //            ProficiencyLevel = s.ProficiencyLevel,
-        //            JobSeekerId = jobSeekerId
-        //        }).ToList();
-        //    }
-        //    if (updateDto.WorkedAs != null && updateDto.WorkedAs.Any())
-        //    {
-        //        var existingWorkedAs = jobSeekerToUpdate.WorkedAs.ToList();
-        //        foreach (var work in existingWorkedAs)
-        //        {
-        //            _context.JobSeekerWorkedAs.Remove(work);
-        //        }
-        //        jobSeekerToUpdate.WorkedAs = updateDto.WorkedAs.Select(w => new JobSeekerWorkedAs
-        //        {
-        //            JobTitle = w.JobTitle,
-        //            StartDate = w.StartDate,
-        //            EndDate = w.EndDate,
-        //            JobSeekerId = jobSeekerId
-        //        }).ToList();
-        //    }
-
-        //    // حفظ التغييرات
-        //    await _context.SaveChangesAsync();
-        //    return Ok(new { message = "Profile updated successfully." });
-        //}
 
         [HttpDelete("DeleteSeekerProfile")]
         public async Task<IActionResult> DeleteSeekerProfile()

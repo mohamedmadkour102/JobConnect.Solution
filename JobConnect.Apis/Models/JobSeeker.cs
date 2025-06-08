@@ -48,26 +48,26 @@ namespace JobConnect.Core.Models
     [Table("JobSeekers")]
     public class JobSeeker : User
     {
-        public string? Address { get; set; } // شيلت = string.Empty
+        public string? Address { get; set; } 
         public int? YearsOfExperience { get; set; }
-        public string? Degree { get; set; } // شيلت = string.Empty
-        public string? CurrentOrDesiredJob { get; set; } // شيلت = string.Empty
-        public string? Bio { get; set; } // شيلت = string.Empty
-        public string? CoverLetter { get; set; } // شيلت = string.Empty
+        public string? Degree { get; set; } 
+        public string? CurrentOrDesiredJob { get; set; } 
+        public string? Bio { get; set; } 
+        public string? CoverLetter { get; set; } 
 
         public DateTime? DateOfBirth { get; set; }
-        public string? Nationality { get; set; } // شيلت = string.Empty
-        public string? MaritalStatus { get; set; } // شيلت = string.Empty
-        public string? Gender { get; set; } // شيلت = string.Empty
-        public string? Education { get; set; } // شيلت = string.Empty
-        public string? Portfolio { get; set; } // شيلت = string.Empty
-        public string? FacebookLink { get; set; } // شيلت = string.Empty
-        public string? TwitterLink { get; set; } // شيلت = string.Empty
-        public string? InstagramLink { get; set; } // شيلت = string.Empty
-        public string? LinkedInLink { get; set; } // شيلت = string.Empty
+        public string? Nationality { get; set; } 
+        public string? MaritalStatus { get; set; }
+        public string? Gender { get; set; } 
+        public string? Education { get; set; } 
+        public string? Portfolio { get; set; } 
+        public string? FacebookLink { get; set; } 
+        public string? TwitterLink { get; set; } 
+        public string? InstagramLink { get; set; }
+        public string? LinkedInLink { get; set; } 
 
-        public string? CollegeName { get; set; } // شيلت = string.Empty
-        public string? University { get; set; } // شيلت = string.Empty
+        public string? CollegeName { get; set; } 
+        public string? University { get; set; } 
 
         public ICollection<Application> Applications { get; set; } = new List<Application>();
         public ICollection<SavedJob> SavedJobs { get; set; } = new List<SavedJob>();

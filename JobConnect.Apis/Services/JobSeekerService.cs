@@ -1,5 +1,4 @@
 ﻿
-using JobConnect.Apis.DTO_s;
 using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
@@ -7,6 +6,8 @@ using JobConnect.Core.Models;
 using JobConnect.Apis.Models;
 using JobConnect.Apis.DTO_s.EmployerDto;
 using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace JobConnect.Apis.Services
 {
@@ -38,6 +39,9 @@ namespace JobConnect.Apis.Services
                 throw new Exception("JobSeeker profile not found.");
             return jobSeeker;
         }
+//        Get saved jobs:
+//Years of experience
+//Posted date
 
         public async Task<IEnumerable<SavedJobSummaryDto>> GetSavedJobsAsync(string jobSeekerId)
         {
@@ -65,7 +69,10 @@ namespace JobConnect.Apis.Services
                 MinSalary = job.MinSalary,
                 MaxSalary = job.MaxSalary,
                 JobType = job.JobType ?? string.Empty,
-                WorkPlace = job.WorkPlace ?? string.Empty
+                WorkPlace = job.WorkPlace ?? string.Empty,
+                PostedDate = job.PostedDate,
+                Experience = job.Experience ?? string.Empty,
+                
             }).ToList();
         }
 
@@ -90,6 +97,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
                 PostedDate = GetTimeAgo(job.PostedDate),
                 Location = job.Location,
@@ -129,6 +137,7 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
                 DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
                 PostedDate = GetTimeAgo(job.PostedDate),
                 Location = job.Location,
@@ -193,6 +202,11 @@ namespace JobConnect.Apis.Services
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
         }
 
+//        Get applied jobs:
+//Posted date
+//Company name
+//Years of experience
+
         public async Task<IEnumerable<AppliedJobSummaryDto>> GetAppliedJobsAsync(string jobSeekerId)
         {
             var jobs = await _jobSeekerRepository.GetAppliedJobsAsync(jobSeekerId);
@@ -220,7 +234,9 @@ namespace JobConnect.Apis.Services
                 MaxSalary = job.MaxSalary,
                 JobType = job.JobType ?? string.Empty,
                 WorkPlace = job.WorkPlace ?? string.Empty,
-                Status = job.Status ?? string.Empty
+                Status = job.Status ?? string.Empty,
+                PostedDate = job.PostedDate,
+                Experience = job.Experience ?? string.Empty,
             }));
         }
 
@@ -251,6 +267,8 @@ namespace JobConnect.Apis.Services
                 Status = job.Status,
                 ApplicationsCount = job.Applications.Count,
                 JobType = job.JobType,
+                WorkPlace = job.WorkPlace,
+               
                 DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
                 PostedDate = GetTimeAgo(job.PostedDate),
                 Location = job.Location,
