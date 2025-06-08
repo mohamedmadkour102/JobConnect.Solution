@@ -72,6 +72,8 @@ namespace JobConnect.Apis.Services
                 WorkPlace = job.WorkPlace ?? string.Empty,
                 PostedDate = job.PostedDate,
                 Experience = job.Experience ?? string.Empty,
+                SalaryType = job.SalaryType ?? string.Empty,
+                
                 
             }).ToList();
         }
@@ -308,6 +310,47 @@ namespace JobConnect.Apis.Services
 
             await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
         }
+
+        public async Task<EmployerProfileDto> GetEmployerByIdAsync(string employerId)
+        {
+            var employer = await _jobSeekerRepository.GetEmployerByIdAsync(employerId);
+            if (employer == null)
+                throw new Exception("Employer not found.");
+
+            return new EmployerProfileDto
+            {
+                Id = employer.Id,
+                Name = $"{employer.FirstName} {employer.LastName}",
+                Email = employer.Email,
+                CompanyName = employer.CompanyName,
+                CompanySize = employer.CompanySize,
+                Website = employer.Website,
+                Industry = employer.Industry,
+                Address = employer.Address,
+                CompanyDescription = employer.CompanyDescription,
+                LogoUrl = employer.LogoUrl,
+                FoundingDate = employer.FoundingDate,
+                PhoneNumber = employer.PhoneNumber,
+                Jobs = employer.Jobs.Select(j => new JobEmpDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    Status = j.Status,
+                    JobType = j.JobType,
+                    WorkPlace = j.WorkPlace,
+                    PostedDate = GetTimeAgo(j.PostedDate),
+                    Location = j.Location,
+                    Description = j.Description,
+                    MinSalary = j.MinSalary,
+                    MaxSalary = j.MaxSalary,
+                    SalaryType = j.SalaryType,
+                    Education = j.Education,
+                    Experience = j.Experience,
+                    Vacancies = j.Vacancies
+                }).ToList()
+            };
+        }
+
         public async Task UpdateJobSeekerAsync(JobSeeker jobSeeker)
         {
             await _jobSeekerRepository.UpdateJobSeekerAsync(jobSeeker);

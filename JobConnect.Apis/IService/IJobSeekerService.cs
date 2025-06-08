@@ -17,8 +17,10 @@
 //		Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
 //	}
 //}
+using JobConnect.Apis.DTO_s.EmployerDto;
 using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Core.Models;
+using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
 
 namespace JobConnect.Apis.IService
 {
@@ -34,10 +36,11 @@ namespace JobConnect.Apis.IService
         Task ApplyForJobAsync(string jobSeekerId, ApplyForJobDto applyDto);
         Task<IEnumerable<AppliedJobSummaryDto>> GetAppliedJobsAsync(string jobSeekerId);
         Task<IEnumerable<EmployerDto>> GetAllEmployersAsync();
-        Task<(IEnumerable<JobDto> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
+        Task<(IEnumerable<DTO_s.SeekerDto.JobDto> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
         Task UpdateJobSeekerAsync(JobSeeker jobSeeker);
         Task DeleteJobSeekerAsync(string jobSeekerId);
         Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
         Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId);
+        Task<EmployerProfileDto> GetEmployerByIdAsync(string employerId);
     }
 }

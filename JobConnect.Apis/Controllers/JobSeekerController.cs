@@ -386,5 +386,16 @@ namespace JobConnect.Apis.Controllers
 
             return Ok(new { message = "Profile completion retrieved successfully.", data = completion });
         }
+
+        [HttpGet("GetEmployerById/{employerId}")]
+        public async Task<IActionResult> GetEmployerById(string employerId)
+        {
+            if (string.IsNullOrEmpty(employerId))
+                return BadRequest(new { message = "Employer ID is required." });
+
+            var employer = await _jobSeekerService.GetEmployerByIdAsync(employerId);
+            return Ok(new { message = "Employer details retrieved successfully.", data = employer });
+        }
+
     }
 }

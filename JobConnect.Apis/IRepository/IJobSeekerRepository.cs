@@ -46,6 +46,7 @@ namespace JobConnect.Apis.IRepository
         Task SaveChangesAsync();
         Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
         Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId);
+        Task<Employer> GetEmployerByIdAsync(string employerId);
     }
 }
 
