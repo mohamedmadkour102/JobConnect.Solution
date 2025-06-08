@@ -51,7 +51,6 @@ namespace JobConnect.Apis.Services
             {
                 Id = job.Id,
                 Title = job.Title ?? string.Empty,
-                EmployerName = $"{job.Employer?.FirstName ?? string.Empty} {job.Employer?.LastName ?? string.Empty}".Trim(),
                 Location = job.Location ?? string.Empty,
                 CreatedAt = GetTimeAgo(job.PostedDate),
                 Applicants = job.Applications?.Select(a => new ApplicantDto
@@ -70,11 +69,21 @@ namespace JobConnect.Apis.Services
                 MaxSalary = job.MaxSalary,
                 JobType = job.JobType ?? string.Empty,
                 WorkPlace = job.WorkPlace ?? string.Empty,
-                PostedDate = job.PostedDate,
+                PostedDate = GetTimeAgo(job.PostedDate),
                 Experience = job.Experience ?? string.Empty,
                 SalaryType = job.SalaryType ?? string.Empty,
-                
-                
+                Employer = new EmployerInfo
+                {
+                    Id = job.Employer.Id,
+                    Name = $"{job.Employer.FirstName} {job.Employer.LastName}",
+                    Email = job.Employer.Email,
+                    CompanyName = job.Employer.CompanyName,
+                    CompanySize = job.Employer.CompanySize,
+                    FoundingDate = job.Employer.FoundingDate,
+                    Industry = job.Employer.Industry,
+                    LogoBase64 = string.IsNullOrEmpty(job.Employer.LogoUrl) ? null : job.Employer.LogoUrl
+                }
+
             }).ToList();
         }
 
@@ -217,7 +226,7 @@ namespace JobConnect.Apis.Services
             {
                 Id = job.Id,
                 Title = job.Title ?? string.Empty,
-                EmployerName = $"{job.Employer?.FirstName ?? string.Empty} {job.Employer?.LastName ?? string.Empty}".Trim(),
+                
                 Location = job.Location ?? string.Empty,
                 CreatedAt = GetTimeAgo(job.PostedDate),
                 Applicants = job.Applications?.Select(a => new ApplicantDto
@@ -237,8 +246,19 @@ namespace JobConnect.Apis.Services
                 JobType = job.JobType ?? string.Empty,
                 WorkPlace = job.WorkPlace ?? string.Empty,
                 Status = job.Status ?? string.Empty,
-                PostedDate = job.PostedDate,
+                PostedDate = GetTimeAgo(job.PostedDate),
                 Experience = job.Experience ?? string.Empty,
+                Employer = new EmployerInfo
+                {
+                    Id = job.Employer.Id,
+                    Name = $"{job.Employer.FirstName} {job.Employer.LastName}",
+                    Email = job.Employer.Email,
+                    CompanyName = job.Employer.CompanyName,
+                    CompanySize = job.Employer.CompanySize,
+                    FoundingDate = job.Employer.FoundingDate,
+                    Industry = job.Employer.Industry,
+                    LogoBase64 = string.IsNullOrEmpty(job.Employer.LogoUrl) ? null : job.Employer.LogoUrl
+                }
             }));
         }
 

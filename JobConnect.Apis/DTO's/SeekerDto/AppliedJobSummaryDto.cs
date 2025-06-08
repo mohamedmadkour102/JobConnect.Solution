@@ -6,7 +6,7 @@ namespace JobConnect.Apis.DTO_s.SeekerDto
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
-        public string EmployerName { get; set; } = string.Empty;
+       
         public string Location { get; set; } = string.Empty;
         public string CreatedAt { get; set; } = string.Empty;
         public List<ApplicantDto> Applicants { get; set; } = new List<ApplicantDto>();
@@ -16,8 +16,8 @@ namespace JobConnect.Apis.DTO_s.SeekerDto
         public string WorkPlace { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Experience { get; set; } = string.Empty;
-        public DateTime PostedDate { get; set; } = DateTime.UtcNow;
-
+        public string PostedDate { get; set; } = string.Empty;
+        public EmployerInfo Employer { get; set; }
 
     }
 }
