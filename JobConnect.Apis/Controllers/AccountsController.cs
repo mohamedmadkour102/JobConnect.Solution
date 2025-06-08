@@ -45,7 +45,7 @@ namespace JobConnect.Apis.Controllers
 					LastName = dto.LastName,
 					Email = dto.Email,
 					PhoneNumber = dto.PhoneNumber,
-                    UserName = $"{dto.FirstName}{dto.LastName}{Guid.NewGuid().ToString("N").Substring(0, 6)}"
+                    UserName = $"{dto.FirstName}{dto.LastName}"
 
                 };
 
@@ -92,7 +92,7 @@ namespace JobConnect.Apis.Controllers
 					Email = dto.Email,
 					PhoneNumber = dto.PhoneNumber,
 					Address = dto.Address,
-                    UserName = $"{dto.FirstName}{dto.LastName}{Guid.NewGuid().ToString("N").Substring(0, 6)}"
+                    UserName = $"{dto.FirstName}{dto.LastName}"
 
                 };
 

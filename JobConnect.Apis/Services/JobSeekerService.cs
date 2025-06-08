@@ -299,6 +299,13 @@ namespace JobConnect.Apis.Services
         {
             await _jobSeekerRepository.DeleteJobSeekerAsync(jobSeekerId);
         }
+        public async Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId)
+        {
+            var completion = await _jobSeekerRepository.GetProfileCompletionAsync(jobSeekerId);
+            if (completion == null)
+                throw new Exception("JobSeeker not found.");
+            return completion;
+        }
 
         private string GetTimeAgo(DateTime date)
         {
