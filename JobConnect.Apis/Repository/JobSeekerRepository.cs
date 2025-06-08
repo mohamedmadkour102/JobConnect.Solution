@@ -224,7 +224,7 @@ namespace JobConnect.Apis.Repository
             if (jobSeeker == null) return null;
 
             var totalFields = 22; 
-            var completedFields = 4;
+            var completedFields = 11;
 
             var fieldDetails = new List<FieldStatus>
         {

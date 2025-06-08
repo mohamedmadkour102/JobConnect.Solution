@@ -39,9 +39,7 @@ namespace JobConnect.Apis.Services
                 throw new Exception("JobSeeker profile not found.");
             return jobSeeker;
         }
-//        Get saved jobs:
-//Years of experience
-//Posted date
+
 
         public async Task<IEnumerable<SavedJobSummaryDto>> GetSavedJobsAsync(string jobSeekerId)
         {
@@ -213,10 +211,7 @@ namespace JobConnect.Apis.Services
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
         }
 
-//        Get applied jobs:
-//Posted date
-//Company name
-//Years of experience
+
 
         public async Task<IEnumerable<AppliedJobSummaryDto>> GetAppliedJobsAsync(string jobSeekerId)
         {

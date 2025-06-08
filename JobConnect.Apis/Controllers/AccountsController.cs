@@ -45,7 +45,13 @@ namespace JobConnect.Apis.Controllers
 					LastName = dto.LastName,
 					Email = dto.Email,
 					PhoneNumber = dto.PhoneNumber,
-                    UserName = $"{dto.FirstName}{dto.LastName}"
+                    UserName = $"{dto.FirstName}{dto.LastName}",
+					CompanyName	= dto.CompanyName,
+					CompanyDescription = dto.CompanyDescription,
+					CompanySize = dto.CompanySize,
+					Industry	= dto.Industry,
+					Address = dto.Address,
+					Website = dto.Website,
 
                 };
 
@@ -92,7 +98,10 @@ namespace JobConnect.Apis.Controllers
 					Email = dto.Email,
 					PhoneNumber = dto.PhoneNumber,
 					Address = dto.Address,
-                    UserName = $"{dto.FirstName}{dto.LastName}"
+                    UserName = $"{dto.FirstName}{dto.LastName}",
+					YearsOfExperience = dto.YearsOfExperience,
+					CurrentOrDesiredJob = dto.CurrentOrDesiredJob,
+					Degree = dto.Degree
 
                 };
 
