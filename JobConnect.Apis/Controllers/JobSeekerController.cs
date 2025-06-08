@@ -1,172 +1,12 @@
-﻿//using JobConnect.Apis.DTO_s.SeekerDto;
-//using JobConnect.Apis.IService;
-//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using System.Security.Claims;
-//using JobConnect.Apis.Helpers;
-
-//namespace JobConnect.Apis.Controllers
-//{
-//	[Route("api/[controller]")]
-//	[ApiController]
-//	[Authorize]
-//	public class JobSeekerController : ControllerBase
-//	{
-//		private readonly IJobSeekerService _jobSeekerService;
-//		private readonly IWebHostEnvironment _environment;
-
-//		public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment)
-//		{
-//			_jobSeekerService = jobSeekerService;
-//			_environment = environment;
-//		}
-
-//		[HttpGet("GetSavedJobs")]
-//		public async Task<IActionResult> GetSavedJobs()
-//		{
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobs = await _jobSeekerService.GetSavedJobsAsync(jobSeekerId);
-//			if (jobs == null || !jobs.Any())
-//				return Ok(new { message = "No saved jobs found.", data = new List<object>() });
-
-//			return Ok(new { message = "Saved jobs retrieved successfully.", data = jobs });
-//		}
-
-//		[HttpPost("SaveJob")]
-//		public async Task<IActionResult> SaveJob([FromBody] SaveJobRequestDto request)
-//		{
-//			if (request.JobId <= 0)
-//				return BadRequest(new { message = "Invalid job ID." });
-
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-//			try
-//			{
-//				await _jobSeekerService.SaveJobAsync(jobSeekerId, request.JobId);
-//				return Ok(new { message = "Job saved successfully." });
-//			}
-//			catch (InvalidOperationException ex)
-//			{
-
-//				return BadRequest(new { message = ex.Message });
-//			}
-//		}
-
-
-//		[HttpPost("UnsaveJob")]
-//		public async Task<IActionResult> UnsaveJob([FromBody] SaveJobRequestDto request)
-//		{
-//			if (request.JobId <= 0)
-//				return BadRequest(new { message = "Invalid job ID." });
-
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _jobSeekerService.UnsaveJobAsync(jobSeekerId, request.JobId);
-//			return Ok(new { message = "Job unsaved successfully." });
-//		}
-
-//		[HttpGet("GetAllJobs")]
-//		public async Task<IActionResult> GetAllJobs()
-//		{
-//			var jobs = await _jobSeekerService.GetAllJobsAsync();
-//			if (jobs == null || !jobs.Any())
-//				return Ok(new { message = "No jobs available.", data = new List<object>() });
-
-//			return Ok(new { message = "Jobs retrieved successfully.", data = jobs });
-//		}
-
-//		[HttpGet("GetJobById/{jobId}")]
-//		public async Task<IActionResult> GetJobById(int jobId)
-//		{
-//			var job = await _jobSeekerService.GetJobByIdAsync(jobId);
-//			if (job == null)
-//				return NotFound(new { message = $"Job with ID {jobId} not found." });
-
-//			return Ok(new { message = "Job details retrieved successfully.", data = job });
-//		}
-
-//		[HttpPost("ApplyForJob")]
-//		public async Task<IActionResult> ApplyForJob([FromForm] ApplyForJobDto applyDto)
-//		{
-//			if (applyDto == null || applyDto.JobId <= 0)
-//				return BadRequest(new { message = "Invalid application data." });
-
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			await _jobSeekerService.ApplyForJobAsync(jobSeekerId, applyDto);
-//			return Ok(new { message = "Application submitted successfully." });
-//		}
-
-//		[HttpGet("GetAppliedJobs")]
-//		public async Task<IActionResult> GetAppliedJobs()
-//		{
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobs = await _jobSeekerService.GetAppliedJobsAsync(jobSeekerId);
-//			if (jobs == null || !jobs.Any())
-//				return Ok(new { message = "No applied jobs found.", data = new List<object>() });
-
-//			return Ok(new { message = "Applied jobs retrieved successfully.", data = jobs });
-//		}
-
-//		[HttpGet("GetAllEmployers")]
-//		public async Task<IActionResult> GetAllEmployers()
-//		{
-//			var employers = await _jobSeekerService.GetAllEmployersAsync();
-//			if (employers == null || !employers.Any())
-//				return Ok(new { message = "No employers found.", data = new List<object>() });
-
-//			return Ok(new { message = "Employers retrieved successfully.", data = employers });
-//		}
-
-//		[HttpGet("GetAllJobsPaginated")]
-//		public async Task<IActionResult> GetAllJobsPaginated([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-//		{
-//			if (pageNumber < 1 || pageSize < 1)
-//				return BadRequest(new { message = "Page number and page size must be greater than 0." });
-
-//			var (jobs, totalCount) = await _jobSeekerService.GetAllJobsPaginatedAsync(pageNumber, pageSize);
-
-//			if (jobs == null || !jobs.Any())
-//				return Ok(new { message = "No jobs available.", data = new List<object>(), totalCount = 0 });
-
-//			return Ok(new
-//			{
-//				message = "Jobs retrieved successfully with pagination.",
-//				data = jobs,
-//				totalCount,
-//				pageNumber,
-//				pageSize,
-//				totalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
-//			});
-//		}
-
-//		[HttpGet("GetResume/{resumePath}")]
-//		public async Task<IActionResult> GetResume(string resumePath)
-//		{
-//			if (string.IsNullOrEmpty(resumePath))
-//				return BadRequest(new { message = "Resume path is required." });
-
-//			var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//			var jobSeeker = await _jobSeekerService.GetJobSeekerByIdAsync(jobSeekerId);
-
-//			var resume = jobSeeker.Resumes.FirstOrDefault(r => r.ResumePath == resumePath);
-//			if (resume == null)
-//				return NotFound(new { message = "Resume not found." });
-
-//			var base64String = await FileHelper.ConvertRelativeFileToBase64Async(_environment.WebRootPath, resumePath);
-//			if (base64String == null)
-//				return NotFound(new { message = "Resume file not found on server." });
-
-//			return Ok(new { message = "Resume retrieved successfully.", data = base64String });
-//		}
-//	}
-//}
-
-using JobConnect.Apis.DTO_s.SeekerDto;
+﻿using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.IService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using JobConnect.Apis.Helpers;
 using JobConnect.Core.Models;
+using Microsoft.EntityFrameworkCore;
+using JobConnect.Repository.Data;
 
 namespace JobConnect.Apis.Controllers
 {
@@ -177,11 +17,13 @@ namespace JobConnect.Apis.Controllers
     {
         private readonly IJobSeekerService _jobSeekerService;
         private readonly IWebHostEnvironment _environment;
+        private readonly AppDbContext _context;
 
-        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment)
+        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment , AppDbContext context)
         {
             _jobSeekerService = jobSeekerService;
             _environment = environment;
+            _context = context;
         }
 
         [HttpGet("GetSavedJobs")]
@@ -397,7 +239,7 @@ namespace JobConnect.Apis.Controllers
             if (jobSeeker == null)
                 return NotFound(new { message = "JobSeeker not found." });
 
-            // تحديث البيانات مع الاحتفاظ بالقيم القديمة لو الـ updateDto فيه null أو فارغ
+            // Update scalar properties if provided
             if (!string.IsNullOrEmpty(updateDto.Address)) jobSeeker.Address = updateDto.Address;
             if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
             if (!string.IsNullOrEmpty(updateDto.Degree)) jobSeeker.Degree = updateDto.Degree;
@@ -417,43 +259,98 @@ namespace JobConnect.Apis.Controllers
             if (!string.IsNullOrEmpty(updateDto.CollegeName)) jobSeeker.CollegeName = updateDto.CollegeName;
             if (!string.IsNullOrEmpty(updateDto.University)) jobSeeker.University = updateDto.University;
 
-            // تحديث الـ Collections (إضافة/استبدال بس مش حذف القديمة إلا لو فيه قيم جديدة)
+            // Append Certifications (instead of full replace)
             if (updateDto.Certifications != null && updateDto.Certifications.Any())
-                jobSeeker.Certifications = updateDto.Certifications.Select(c => new JobSeekerCertification
+            {
+                foreach (var c in updateDto.Certifications)
                 {
-                    CertificationName = c.CertificationName,
-                    IssuingOrganization = c.IssuingOrganization,
-                    IssueDate = c.IssueDate,
-                    ExpiryDate = c.ExpiryDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.Certifications.Any(x =>
+                        x.CertificationName == c.CertificationName &&
+                        x.IssuingOrganization == c.IssuingOrganization &&
+                        x.IssueDate == c.IssueDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.Certifications.Add(new JobSeekerCertification
+                        {
+                            CertificationName = c.CertificationName,
+                            IssuingOrganization = c.IssuingOrganization,
+                            IssueDate = c.IssueDate,
+                            ExpiryDate = c.ExpiryDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append CompanyWorkedAt
             if (updateDto.CompanyWorkedAt != null && updateDto.CompanyWorkedAt.Any())
-                jobSeeker.CompanyWorkedAt = updateDto.CompanyWorkedAt.Select(c => new JobSeekerCompanyWorkedAt
+            {
+                foreach (var c in updateDto.CompanyWorkedAt)
                 {
-                    CompanyName = c.CompanyName,
-                    StartDate = c.StartDate,
-                    EndDate = c.EndDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.CompanyWorkedAt.Any(x =>
+                        x.CompanyName == c.CompanyName &&
+                        x.StartDate == c.StartDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
+                        {
+                            CompanyName = c.CompanyName,
+                            StartDate = c.StartDate,
+                            EndDate = c.EndDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append Skills
             if (updateDto.Skills != null && updateDto.Skills.Any())
-                jobSeeker.Skills = updateDto.Skills.Select(s => new JobSeekerSkill
+            {
+                foreach (var s in updateDto.Skills)
                 {
-                    SkillName = s.SkillName,
-                    ProficiencyLevel = s.ProficiencyLevel,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.Skills.Any(x => x.SkillName == s.SkillName);
+
+                    if (!exists)
+                    {
+                        jobSeeker.Skills.Add(new JobSeekerSkill
+                        {
+                            SkillName = s.SkillName,
+                            ProficiencyLevel = s.ProficiencyLevel,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
+
+            // Append WorkedAs
             if (updateDto.WorkedAs != null && updateDto.WorkedAs.Any())
-                jobSeeker.WorkedAs = updateDto.WorkedAs.Select(w => new JobSeekerWorkedAs
+            {
+                foreach (var w in updateDto.WorkedAs)
                 {
-                    JobTitle = w.JobTitle,
-                    StartDate = w.StartDate,
-                    EndDate = w.EndDate,
-                    JobSeekerId = jobSeekerId
-                }).ToList();
+                    var exists = jobSeeker.WorkedAs.Any(x =>
+                        x.JobTitle == w.JobTitle &&
+                        x.StartDate == w.StartDate);
+
+                    if (!exists)
+                    {
+                        jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
+                        {
+                            JobTitle = w.JobTitle,
+                            StartDate = w.StartDate,
+                            EndDate = w.EndDate,
+                            JobSeekerId = jobSeekerId
+                        });
+                    }
+                }
+            }
 
             await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker);
+
             return Ok(new { message = "Profile updated successfully." });
         }
+
 
         [HttpDelete("DeleteSeekerProfile")]
         public async Task<IActionResult> DeleteSeekerProfile()
@@ -462,5 +359,43 @@ namespace JobConnect.Apis.Controllers
             await _jobSeekerService.DeleteJobSeekerAsync(jobSeekerId);
             return Ok(new { message = "Profile deleted successfully." });
         }
+        [HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
+        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId)
+        {
+            if (jobId <= 0 || resumeId <= 0)
+                return BadRequest(new { message = "Invalid job ID or resume ID." });
+
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var applyDto = new ApplyForJobByResumeIdDto
+            {
+                JobId = jobId,
+                ResumeId = resumeId
+            };
+
+            await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+            return Ok(new { message = "Application submitted successfully." });
+        }
+
+        [HttpGet("GetProfileCompletion")]
+        public async Task<IActionResult> GetProfileCompletion()
+        {
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var completion = await _jobSeekerService.GetProfileCompletionAsync(jobSeekerId);
+            if (completion == null)
+                return NotFound(new { message = "Profile completion data not found." });
+
+            return Ok(new { message = "Profile completion retrieved successfully.", data = completion });
+        }
+
+        [HttpGet("GetEmployerById/{employerId}")]
+        public async Task<IActionResult> GetEmployerById(string employerId)
+        {
+            if (string.IsNullOrEmpty(employerId))
+                return BadRequest(new { message = "Employer ID is required." });
+
+            var employer = await _jobSeekerService.GetEmployerByIdAsync(employerId);
+            return Ok(new { message = "Employer details retrieved successfully.", data = employer });
+        }
+
     }
 }

@@ -4,7 +4,7 @@ using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using System.Text.Json;
 
 namespace JobConnect.Apis.Controllers
 {
@@ -30,7 +30,6 @@ namespace JobConnect.Apis.Controllers
             {
                 _logger.LogInformation("Received Contact Us message from {Email}", dto.Email);
 
-                
                 var message = new ContactMessage
                 {
                     FirstName = dto.FirstName,
@@ -43,7 +42,6 @@ namespace JobConnect.Apis.Controllers
                 _context.ContactMessages.Add(message);
                 await _context.SaveChangesAsync();
 
-        
                 var emailBody = $@"
                     <h2>New Contact Us Message</h2>
                     <table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse;'>
@@ -75,7 +73,6 @@ namespace JobConnect.Apis.Controllers
                     <p><em>Message sent on: {DateTime.UtcNow.ToString("f")}</em></p>
                 ";
 
-                // Send email to the configured email address
                 await _emailService.SendEmailAsync("Mohamed.Madkour2002@gmail.com", "New Contact Us Message", emailBody);
 
                 _logger.LogInformation("Contact Us message saved and email sent successfully for {Email}", dto.Email);
@@ -115,10 +112,9 @@ namespace JobConnect.Apis.Controllers
             {
                 _logger.LogInformation("Fetching all Job Tags");
 
-
                 var tags = await _context.JobTags
                     .Select(jt => jt.Tag)
-                    .Distinct() 
+                    .Distinct()
                     .ToListAsync();
 
                 if (!tags.Any())
@@ -133,6 +129,100 @@ namespace JobConnect.Apis.Controllers
             {
                 _logger.LogError(ex, "Error fetching Job Tags");
                 return StatusCode(500, new { Message = "An error occurred while fetching tags." });
+            }
+        }
+
+        //Test {
+//  "title": "Default Job",
+//  "location": "Remote",
+//  "experience": "2-5 years",
+//  "minSalary": 50000
+//}
+
+    [HttpGet("GetAllJobs")]
+        public async Task<IActionResult> GetAllJobs([FromQuery] Dictionary<string, string> filters)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching all jobs with filters: {Filters}", string.Join(", ", filters.Select(f => $"{f.Key}={f.Value}")));
+
+                var query = _context.Jobs
+                    .AsQueryable();
+
+                if (filters != null && filters.Any())
+                {
+                    foreach (var filter in filters)
+                    {
+                        switch (filter.Key.ToLower())
+                        {
+                            case "searchterm":
+                                query = query.Where(j => j.Title.Contains(filter.Value) ||
+                                                      j.Location.Contains(filter.Value));
+                                break;
+                            case "experience":
+                                query = query.Where(j => j.Experience == filter.Value);
+                                break;
+                            case "minsalary":
+                                if (decimal.TryParse(filter.Value, out decimal minSalary))
+                                {
+                                    query = query.Where(j => j.MinSalary >= minSalary);
+                                }
+                                break;
+                            case "maxsalary":
+                                if (decimal.TryParse(filter.Value, out decimal maxSalary))
+                                {
+                                    query = query.Where(j => j.MaxSalary <= maxSalary);
+                                }
+                                break;
+                            case "jobtype":
+                                query = query.Where(j => j.JobType == filter.Value);
+                                break;
+                            case "educationlevel":
+                                query = query.Where(j => j.Education == filter.Value);
+                                break;
+                            case "location":
+                                query = query.Where(j => j.Location.Contains(filter.Value));
+                                break;
+                        }
+                    }
+                }
+
+                var jobs = await query
+                    .Select(j => new
+                    {
+                        j.Id,
+                        j.Description,
+                        j.MinSalary,
+                        j.MaxSalary,
+                        j.SalaryType,
+                        j.Education,
+                        j.Experience,
+                        j.Vacancies,
+                        j.ExpirationDate,
+                        j.Title,
+                        j.Status,
+                        j.ApplicationCount,
+                        j.JobType,
+                        j.WorkPlace,
+                        j.DaysRemaining,
+                        j.PostedDate,
+                        j.Location
+                    })
+                    .ToListAsync();
+
+                if (!jobs.Any())
+                {
+                    _logger.LogWarning("No jobs found with the applied filters");
+                    return NotFound(new { Message = "No jobs found." });
+                }
+
+                _logger.LogInformation("Successfully fetched {Count} jobs", jobs.Count);
+                return Ok(new { Message = "Jobs retrieved successfully.", Data = jobs });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching jobs with filters");
+                return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
             }
         }
     }

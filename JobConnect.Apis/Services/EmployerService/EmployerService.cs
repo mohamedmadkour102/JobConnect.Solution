@@ -4,6 +4,8 @@ using JobConnect.Apis.DTO_s.EmployerDto;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
 using JobConnect.Apis.Models;
+using JobConnect.Apis.DTO_s.SeekerDto;
+using JobDto = JobConnect.Apis.DTO_s.EmployerDto.JobDto;
 
 
 namespace JobConnect.Apis.Services
@@ -42,9 +44,7 @@ namespace JobConnect.Apis.Services
 
             if (dto.Logo != null)
             {
-
                 employer.LogoUrl = await _cloudinaryService.UploadAsync(dto.Logo);
-
             }
 
             await _employerRepository.UpdateEmployerAsync(employer);
@@ -347,22 +347,18 @@ namespace JobConnect.Apis.Services
             return (jobDtos, totalCount);
         }
 
-
-        // New method to delete the Employer account
         public async Task DeleteEmployerAccountAsync(string employerId)
         {
             var employer = await _userManager.FindByIdAsync(employerId);
             if (employer == null)
                 throw new Exception("Employer not found.");
 
-            // Delete all jobs associated with the employer due to Restrict behavior
             var jobs = await _employerRepository.GetJobsByEmployerAsync(employerId);
             foreach (var job in jobs)
             {
                 await _employerRepository.DeleteJobAsync(job.Id, employerId);
             }
 
-            // Delete the employer from Identity
             var result = await _userManager.DeleteAsync(employer);
             if (!result.Succeeded)
             {
@@ -370,38 +366,156 @@ namespace JobConnect.Apis.Services
             }
         }
 
-        // New method to get JobSeeker by ID
-        public async Task<ApplicantDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId)
-        {
-            // Check if the JobSeeker has applied to any of the Employer's jobs
-            var jobs = await _employerRepository.GetJobsByEmployerAsync(employerId);
+        //public async Task<SeekerProfileDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId)
+        //{
+        //    var jobs = await _employerRepository.GetJobsByEmployerAsync(employerId);
+        //    var applicationExists = jobs.SelectMany(j => j.Applications).Any(a => a.JobSeekerId == jobSeekerId);
 
-            var applicationExists = jobs
-                .SelectMany(j => j.Applications)
-                .Any(a => a.JobSeekerId == jobSeekerId);
+        //    if (!applicationExists)
+        //        return null;
+
+        //    var jobSeeker = await _employerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+        //    if (jobSeeker == null)
+        //        return null;
+
+        //    return new SeekerProfileDto
+        //    {
+        //        Id = jobSeeker.Id,
+        //        FirstName = jobSeeker.FirstName,
+        //        LastName = jobSeeker.LastName,
+        //        Email = jobSeeker.Email,
+        //        Address = jobSeeker.Address,
+        //        YearsOfExperience = jobSeeker.YearsOfExperience,
+        //        Degree = jobSeeker.Degree,
+        //        CurrentOrDesiredJob = jobSeeker.CurrentOrDesiredJob,
+        //        Bio = jobSeeker.Bio,
+        //        CoverLetter = jobSeeker.CoverLetter,
+        //        DateOfBirth = jobSeeker.DateOfBirth,
+        //        Nationality = jobSeeker.Nationality,
+        //        MaritalStatus = jobSeeker.MaritalStatus,
+        //        Gender = jobSeeker.Gender,
+        //        Education = jobSeeker.Education,
+        //        Portfolio = jobSeeker.Portfolio,
+        //        FacebookLink = jobSeeker.FacebookLink,
+        //        TwitterLink = jobSeeker.TwitterLink,
+        //        InstagramLink = jobSeeker.InstagramLink,
+        //        LinkedInLink = jobSeeker.LinkedInLink,
+        //        CollegeName = jobSeeker.CollegeName,
+        //        University = jobSeeker.University,
+        //        Resumes = jobSeeker.Resumes.Select(r => new SeekerProfileDto.ResumeDto
+        //        {
+        //            ResumePath = r.ResumePath,
+        //            ResumeName = r.ResumeName,
+        //            UploadDate = r.UploadDate
+        //        }).ToList(),
+        //        Certifications = jobSeeker.Certifications.Select(c => new SeekerProfileDto.CertificationDto
+        //        {
+        //            CertificationName = c.CertificationName,
+        //            IssuingOrganization = c.IssuingOrganization,
+        //            IssueDate = c.IssueDate,
+        //            ExpiryDate = c.ExpiryDate
+        //        }).ToList(),
+        //        CompanyWorkedAt = jobSeeker.CompanyWorkedAt.Select(c => new SeekerProfileDto.CompanyWorkedAtDto
+        //        {
+        //            CompanyName = c.CompanyName,
+        //            StartDate = c.StartDate,
+        //            EndDate = c.EndDate
+        //        }).ToList(),
+        //        Skills = jobSeeker.Skills.Select(s => new SeekerProfileDto.SkillDto
+        //        {
+        //            SkillName = s.SkillName,
+        //            ProficiencyLevel = s.ProficiencyLevel
+        //        }).ToList(),
+        //        WorkedAs = jobSeeker.WorkedAs.Select(w => new SeekerProfileDto.WorkedAsDto
+        //        {
+        //            JobTitle = w.JobTitle,
+        //            StartDate = w.StartDate,
+        //            EndDate = w.EndDate
+        //        }).ToList()
+        //    };
+        //}
+        public async Task<SeekerProfileDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId)
+        {
+            var jobs = await _employerRepository.GetJobsByEmployerAsync(employerId);
+            var applicationExists = jobs.SelectMany(j => j.Applications).Any(a => a.JobSeekerId == jobSeekerId);
 
             if (!applicationExists)
-                return null; // JobSeeker hasn't applied to any of the Employer's jobs
+                return null;
 
-            // Get the JobSeeker
             var jobSeeker = await _employerRepository.GetJobSeekerByIdAsync(jobSeekerId);
             if (jobSeeker == null)
                 return null;
 
-            // Map to ApplicantDto
-            return new ApplicantDto
+            return new SeekerProfileDto
             {
                 Id = jobSeeker.Id,
-                Name = $"{jobSeeker.FirstName} {jobSeeker.LastName}",
+                FirstName = jobSeeker.FirstName,
+                LastName = jobSeeker.LastName,
                 Email = jobSeeker.Email,
-                CurrentOrDesiredJob = jobSeeker.CurrentOrDesiredJob,
+                Address = jobSeeker.Address,
                 YearsOfExperience = jobSeeker.YearsOfExperience,
-                // Note: ResumeBase64, CoverLetter, ApplicationDate, and IsShortlisted would need an Application context,
-                // but since we're only fetching the JobSeeker, these will be null unless we join with Applications
+                Degree = jobSeeker.Degree,
+                CurrentOrDesiredJob = jobSeeker.CurrentOrDesiredJob,
+                Bio = jobSeeker.Bio,
+                CoverLetter = jobSeeker.CoverLetter,
+                DateOfBirth = jobSeeker.DateOfBirth,
+                Nationality = jobSeeker.Nationality,
+                MaritalStatus = jobSeeker.MaritalStatus,
+                Gender = jobSeeker.Gender,
+                Education = jobSeeker.Education,
+                Portfolio = jobSeeker.Portfolio,
+                FacebookLink = jobSeeker.FacebookLink,
+                TwitterLink = jobSeeker.TwitterLink,
+                InstagramLink = jobSeeker.InstagramLink,
+                LinkedInLink = jobSeeker.LinkedInLink,
+                CollegeName = jobSeeker.CollegeName,
+                University = jobSeeker.University,
+                Resumes = jobSeeker.Resumes.Select(r => new ResumeDto
+                {
+                    ResumePath = r.ResumePath,
+                    ResumeName = r.ResumeName,
+                    UploadDate = r.UploadDate
+                }).ToList(),
+                Certifications = jobSeeker.Certifications.Select(c => new CertificationDto
+                {
+                    CertificationName = c.CertificationName,
+                    IssuingOrganization = c.IssuingOrganization,
+                    IssueDate = c.IssueDate,
+                    ExpiryDate = c.ExpiryDate
+                }).ToList(),
+                CompanyWorkedAt = jobSeeker.CompanyWorkedAt.Select(c => new CompanyWorkedAtDto
+                {
+                    CompanyName = c.CompanyName,
+                    StartDate = c.StartDate,
+                    EndDate = c.EndDate
+                }).ToList(),
+                Skills = jobSeeker.Skills.Select(s => new SkillDto
+                {
+                    SkillName = s.SkillName,
+                    ProficiencyLevel = s.ProficiencyLevel
+                }).ToList(),
+                WorkedAs = jobSeeker.WorkedAs.Select(w => new WorkedAsDto
+                {
+                    JobTitle = w.JobTitle,
+                    StartDate = w.StartDate,
+                    EndDate = w.EndDate
+                }).ToList()
             };
         }
 
+        public async Task<IEnumerable<ResumeDto>> GetSeekerResumesWithIdAsync(string jobSeekerId) // تعديل هنا
+        {
+            var jobSeeker = await _employerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                return Enumerable.Empty<ResumeDto>();
 
+            return jobSeeker.Resumes.Select(r => new ResumeDto
+            {
+                ResumePath = r.ResumePath,
+                ResumeName = r.ResumeName,
+                UploadDate = r.UploadDate
+            });
+        }
 
         private string GetTimeAgo(DateTime date)
         {
@@ -420,4 +534,3 @@ namespace JobConnect.Apis.Services
         }
     }
 }
-

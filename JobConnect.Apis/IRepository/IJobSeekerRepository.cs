@@ -20,6 +20,7 @@
 
 //	}
 //}
+using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.Models;
 using JobConnect.Core.Models;
 using System.Collections.Generic;
@@ -43,6 +44,9 @@ namespace JobConnect.Apis.IRepository
         Task<(IEnumerable<Job> Jobs, int TotalCount)> GetAllJobsPaginatedAsync(int pageNumber, int pageSize);
         Task<IEnumerable<Employer>> GetAllEmployersAsync();
         Task SaveChangesAsync();
+        Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
+        Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId);
+        Task<Employer> GetEmployerByIdAsync(string employerId);
     }
 }
 
