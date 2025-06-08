@@ -23,6 +23,7 @@
 using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.Models;
 using JobConnect.Core.Models;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -47,8 +48,13 @@ namespace JobConnect.Apis.IRepository
         Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
         Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId);
         Task<Employer> GetEmployerByIdAsync(string employerId);
+
+        Task UploadResumeAsync(string jobSeekerId, UploadResumeDto uploadDto);
+        Task DeleteResumeAsync(string jobSeekerId, int resumeId);
+        Task<IEnumerable<ResumeInfoDto>> GetResumesAsync(string jobSeekerId);
     }
 }
+    
 
 
 

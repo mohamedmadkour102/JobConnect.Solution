@@ -396,6 +396,37 @@ namespace JobConnect.Apis.Controllers
             var employer = await _jobSeekerService.GetEmployerByIdAsync(employerId);
             return Ok(new { message = "Employer details retrieved successfully.", data = employer });
         }
+        [HttpPost("UploadResume")]
+        public async Task<IActionResult> UploadResume([FromForm] UploadResumeDto uploadDto)
+        {
+            if (uploadDto?.Resume == null)
+                return BadRequest(new { message = "Resume file is required." });
 
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await _jobSeekerService.UploadResumeAsync(jobSeekerId, uploadDto);
+            return Ok(new { message = "Resume uploaded successfully." });
+        }
+
+        [HttpDelete("DeleteResume/{resumeId}")]
+        public async Task<IActionResult> DeleteResume(int resumeId)
+        {
+            if (resumeId <= 0)
+                return BadRequest(new { message = "Invalid resume ID." });
+
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await _jobSeekerService.DeleteResumeAsync(jobSeekerId, resumeId);
+            return Ok(new { message = "Resume deleted successfully." });
+        }
+
+        [HttpGet("GetResumes")]
+        public async Task<IActionResult> GetResumes()
+        {
+            var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var resumes = await _jobSeekerService.GetResumesAsync(jobSeekerId);
+            if (resumes == null || !resumes.Any())
+                return Ok(new { message = "No resumes found.", data = new List<object>() });
+
+            return Ok(new { message = "Resumes retrieved successfully.", data = resumes });
+        }
     }
 }

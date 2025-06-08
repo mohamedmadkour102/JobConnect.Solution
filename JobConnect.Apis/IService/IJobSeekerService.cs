@@ -42,5 +42,8 @@ namespace JobConnect.Apis.IService
         Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto);
         Task<ProfileCompletionDto> GetProfileCompletionAsync(string jobSeekerId);
         Task<EmployerProfileDto> GetEmployerByIdAsync(string employerId);
+        Task UploadResumeAsync(string jobSeekerId, UploadResumeDto uploadDto);
+        Task DeleteResumeAsync(string jobSeekerId, int resumeId);
+        Task<IEnumerable<ResumeInfoDto>> GetResumesAsync(string jobSeekerId);
     }
 }
