@@ -224,7 +224,7 @@ namespace JobConnect.Apis.Repository
             if (jobSeeker == null) return null;
 
             var totalFields = 22; 
-            var completedFields = 4;
+            var completedFields = 11;
 
             var fieldDetails = new List<FieldStatus>
         {
@@ -273,5 +273,48 @@ namespace JobConnect.Apis.Repository
                 .FirstOrDefaultAsync(e => e.Id == employerId);
         }
 
+        public async Task UploadResumeAsync(string jobSeekerId, UploadResumeDto uploadDto)
+        {
+            var jobSeeker = await GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            var newResume = new JobSeekerResume
+            {
+                JobSeekerId = jobSeekerId,
+                ResumePath = string.Empty, // Will be updated in service with Cloudinary path
+                ResumeName = uploadDto.Resume.FileName,
+                UploadDate = DateTime.UtcNow
+            };
+
+            jobSeeker.Resumes.Add(newResume);
+            await SaveChangesAsync();
+        }
+
+        public async Task DeleteResumeAsync(string jobSeekerId, int resumeId)
+        {
+            var jobSeeker = await GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == resumeId);
+            if (resume == null)
+                throw new Exception("Resume not found.");
+
+            _context.JobSeekerResumes.Remove(resume);
+            await SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<ResumeInfoDto>> GetResumesAsync(string jobSeekerId)
+        {
+            return await _context.JobSeekerResumes
+                .Where(r => r.JobSeekerId == jobSeekerId)
+                .Select(r => new ResumeInfoDto
+                {
+                    Id = r.Id,
+                    ResumeName = r.ResumeName
+                })
+                .ToListAsync();
+        }
     }
 }

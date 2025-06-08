@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using JobConnect.Apis.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace JobConnect.Apis.DTO_s
@@ -33,5 +34,15 @@ namespace JobConnect.Apis.DTO_s
 													"1 special character (!@#$%&*()_+}})")]
 		public string Password { get; set; }
 
-	}
+        //  companyname , compay size , website , industry , address  , description 
+
+        public string CompanyName { get; set; } 
+        public string CompanySize { get; set; } 
+        public string Website { get; set; } 
+        public string Industry { get; set; } 
+        public string Address { get; set; } 
+        public string CompanyDescription { get; set; }
+
+
+    }
 }

@@ -39,9 +39,7 @@ namespace JobConnect.Apis.Services
                 throw new Exception("JobSeeker profile not found.");
             return jobSeeker;
         }
-//        Get saved jobs:
-//Years of experience
-//Posted date
+
 
         public async Task<IEnumerable<SavedJobSummaryDto>> GetSavedJobsAsync(string jobSeekerId)
         {
@@ -213,10 +211,7 @@ namespace JobConnect.Apis.Services
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
         }
 
-//        Get applied jobs:
-//Posted date
-//Company name
-//Years of experience
+
 
         public async Task<IEnumerable<AppliedJobSummaryDto>> GetAppliedJobsAsync(string jobSeekerId)
         {
@@ -386,6 +381,55 @@ namespace JobConnect.Apis.Services
             if (completion == null)
                 throw new Exception("JobSeeker not found.");
             return completion;
+        }
+        public async Task UploadResumeAsync(string jobSeekerId, UploadResumeDto uploadDto)
+        {
+            if (uploadDto?.Resume == null)
+                throw new Exception("Resume file is required.");
+
+            var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            var resumePath = await _cloudinaryService.UploadAsync(uploadDto.Resume);
+
+            var newResume = new JobSeekerResume
+            {
+                JobSeekerId = jobSeekerId,
+                ResumePath = resumePath,
+                ResumeName = uploadDto.Resume.FileName,
+                UploadDate = DateTime.UtcNow
+            };
+
+            jobSeeker.Resumes.Add(newResume);
+            await _jobSeekerRepository.UpdateJobSeekerAsync(jobSeeker);
+        }
+
+        public async Task DeleteResumeAsync(string jobSeekerId, int resumeId)
+        {
+            var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == resumeId);
+            if (resume == null)
+                throw new Exception("Resume not found.");
+
+            jobSeeker.Resumes.Remove(resume);
+            await _jobSeekerRepository.UpdateJobSeekerAsync(jobSeeker);
+        }
+
+        public async Task<IEnumerable<ResumeInfoDto>> GetResumesAsync(string jobSeekerId)
+        {
+            var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            return jobSeeker.Resumes.Select(r => new ResumeInfoDto
+            {
+                Id = r.Id,
+                ResumeName = r.ResumeName
+            }).ToList();
         }
 
         private string GetTimeAgo(DateTime date)

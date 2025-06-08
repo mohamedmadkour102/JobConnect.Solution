@@ -33,7 +33,11 @@ namespace JobConnect.Apis.DTO_s
 		[Required(ErrorMessage = "Address is required.")]
 		[MinLength(4, ErrorMessage = "Address must be at least 4 characters.")]
 		public string Address { get; set; }
+        // expe , desired job , degree 
 
+        public int YearsOfExperience { get; set; }
+        public string  Degree { get; set; }
+        public string CurrentOrDesiredJob { get; set; }
 
-	}
+    }
 }
