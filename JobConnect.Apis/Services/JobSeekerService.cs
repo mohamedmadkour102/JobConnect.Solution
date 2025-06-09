@@ -428,7 +428,9 @@ namespace JobConnect.Apis.Services
             return jobSeeker.Resumes.Select(r => new ResumeInfoDto
             {
                 Id = r.Id,
-                ResumeName = r.ResumeName
+                ResumeName = r.ResumeName,
+                ResumePath = r.ResumePath
+                
             }).ToList();
         }
 

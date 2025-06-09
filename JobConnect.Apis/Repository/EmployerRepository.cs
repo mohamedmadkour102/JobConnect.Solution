@@ -170,6 +170,15 @@ namespace JobConnect.Apis.Repository
                 .Include(js => js.WorkedAs)
                 .FirstOrDefaultAsync(js => js.Id == jobSeekerId);
         }
+ 
+
+        public async Task<IEnumerable<Application>> GetApplicationsByJobAsync(int jobId)
+        {
+            return await _context.Applications
+                .Include(a => a.JobSeeker)
+                .Where(a => a.JobId == jobId)
+                .ToListAsync();
+        }
 
     }
 }

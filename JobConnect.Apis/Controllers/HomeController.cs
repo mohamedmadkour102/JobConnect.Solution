@@ -132,65 +132,84 @@ namespace JobConnect.Apis.Controllers
             }
         }
 
-        //Test {
-//  "title": "Default Job",
-//  "location": "Remote",
-//  "experience": "2-5 years",
-//  "minSalary": 50000
-//}
-
-    [HttpGet("GetAllJobs")]
-        public async Task<IActionResult> GetAllJobs([FromQuery] Dictionary<string, string> filters)
+        [HttpGet("GetAllJobs")]
+        public async Task<IActionResult> GetAllJobs(
+     [FromQuery] Dictionary<string, string> filters,
+     [FromQuery] int pageNumber = 1,
+     [FromQuery] int pageSize = 10)
         {
             try
             {
                 _logger.LogInformation("Fetching all jobs with filters: {Filters}", string.Join(", ", filters.Select(f => $"{f.Key}={f.Value}")));
 
                 var query = _context.Jobs
+                    .Include(j => j.Employer)
                     .AsQueryable();
 
                 if (filters != null && filters.Any())
                 {
                     foreach (var filter in filters)
                     {
-                        switch (filter.Key.ToLower())
+                        var key = filter.Key.ToLower();
+                        var value = filter.Value?.Trim();
+
+                        if (string.IsNullOrWhiteSpace(value) || value.ToLower() == "all")
+                            continue;
+
+                        switch (key)
                         {
                             case "searchterm":
-                                query = query.Where(j => j.Title.Contains(filter.Value) ||
-                                                      j.Location.Contains(filter.Value));
+                            case "title":
+                                query = query.Where(j => j.Title.ToLower().Contains(value.ToLower()) ||
+                                                         j.Location.ToLower().Contains(value.ToLower()));
                                 break;
+
                             case "experience":
-                                query = query.Where(j => j.Experience == filter.Value);
+                                query = query.Where(j => j.Experience.ToLower() == value.ToLower());
                                 break;
+
                             case "minsalary":
-                                if (decimal.TryParse(filter.Value, out decimal minSalary))
+                                if (decimal.TryParse(value, out decimal minSalary))
                                 {
                                     query = query.Where(j => j.MinSalary >= minSalary);
                                 }
                                 break;
+
                             case "maxsalary":
-                                if (decimal.TryParse(filter.Value, out decimal maxSalary))
+                                if (decimal.TryParse(value, out decimal maxSalary))
                                 {
                                     query = query.Where(j => j.MaxSalary <= maxSalary);
                                 }
                                 break;
+
                             case "jobtype":
-                                query = query.Where(j => j.JobType == filter.Value);
+                                query = query.Where(j => j.JobType.ToLower() == value.ToLower());
                                 break;
+
                             case "educationlevel":
-                                query = query.Where(j => j.Education == filter.Value);
+                                query = query.Where(j => j.Education.ToLower() == value.ToLower());
                                 break;
+
                             case "location":
-                                query = query.Where(j => j.Location.Contains(filter.Value));
+                                query = query.Where(j => j.Location.ToLower().Contains(value.ToLower()));
+                                break;
+
+                            case "workplace":
+                                query = query.Where(j => j.WorkPlace.ToLower() == value.ToLower());
                                 break;
                         }
                     }
                 }
 
+                var totalCount = await query.CountAsync();
+
                 var jobs = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(j => new
                     {
                         j.Id,
+                        j.Title,
                         j.Description,
                         j.MinSalary,
                         j.MaxSalary,
@@ -198,26 +217,36 @@ namespace JobConnect.Apis.Controllers
                         j.Education,
                         j.Experience,
                         j.Vacancies,
-                        j.ExpirationDate,
-                        j.Title,
+                        ExpirationDate = j.ExpirationDate.ToString("yyyy-MM-dd"),
+                        PostedDate = j.PostedDate.ToString("yyyy-MM-dd"),
                         j.Status,
                         j.ApplicationCount,
                         j.JobType,
                         j.WorkPlace,
                         j.DaysRemaining,
-                        j.PostedDate,
-                        j.Location
+                        j.Location,
+
+                        Employer = j.Employer == null ? null : new
+                        {
+                            j.Employer.Id,
+                            j.Employer.CompanyName,
+                            j.Employer.Email,
+                            j.Employer.PhoneNumber,
+                            j.Employer.Industry
+                        }
                     })
                     .ToListAsync();
 
-                if (!jobs.Any())
-                {
-                    _logger.LogWarning("No jobs found with the applied filters");
-                    return NotFound(new { Message = "No jobs found." });
-                }
+                _logger.LogInformation("Successfully fetched {Count} jobs (Page {PageNumber} with size {PageSize})", jobs.Count, pageNumber, pageSize);
 
-                _logger.LogInformation("Successfully fetched {Count} jobs", jobs.Count);
-                return Ok(new { Message = "Jobs retrieved successfully.", Data = jobs });
+                return Ok(new
+                {
+                    Message = jobs.Any() ? "Jobs retrieved successfully." : "No jobs found with the applied filters.",
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Data = jobs
+                });
             }
             catch (Exception ex)
             {
@@ -225,5 +254,7 @@ namespace JobConnect.Apis.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
             }
         }
+
+
     }
 }

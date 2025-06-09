@@ -54,6 +54,7 @@ namespace JobConnect.Apis.IService
         Task<(IEnumerable<DTO_s.EmployerDto.JobDto> Jobs, int TotalCount)> GetJobsByEmployerPaginatedAsync(string employerId, int pageNumber, int pageSize);
         Task DeleteEmployerAccountAsync(string employerId);
         Task<SeekerProfileDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId);
-        Task<IEnumerable<ResumeDto>> GetSeekerResumesWithIdAsync(string jobSeekerId); // تعديل هنا
+        Task<IEnumerable<ResumeDto>> GetSeekerResumesWithIdAsync(string jobSeekerId);
+        Task<IEnumerable<JobApplicantWithResumeDto>> GetApplicantsWithResumeAsync(int jobId, string employerId);
     }
 }

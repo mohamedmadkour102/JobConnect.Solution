@@ -49,5 +49,7 @@ namespace JobConnect.Apis.IRepository
         Task RemoveFromShortlistAsync(int jobId, string jobSeekerId);
         Task<IEnumerable<Application>> GetShortlistedJobSeekersAsync(int jobId, string employerId);
         Task<JobSeeker?> GetJobSeekerByIdAsync(string jobSeekerId);
+        Task<IEnumerable<Application>> GetApplicationsByJobAsync(int jobId);
+
     }
 }

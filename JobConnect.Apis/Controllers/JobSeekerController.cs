@@ -202,26 +202,26 @@ namespace JobConnect.Apis.Controllers
                 Certifications = jobSeeker.Certifications.Select(c => new CertificationDto
                 {
                     CertificationName = c.CertificationName,
-                    IssuingOrganization = c.IssuingOrganization,
-                    IssueDate = c.IssueDate,
-                    ExpiryDate = c.ExpiryDate
+                    //IssuingOrganization = c.IssuingOrganization,
+                    //IssueDate = c.IssueDate,
+                    //ExpiryDate = c.ExpiryDate
                 }).ToList(),
                 CompanyWorkedAt = jobSeeker.CompanyWorkedAt.Select(c => new CompanyWorkedAtDto
                 {
                     CompanyName = c.CompanyName,
-                    StartDate = c.StartDate,
-                    EndDate = c.EndDate
+                    //StartDate = c.StartDate,
+                    //EndDate = c.EndDate
                 }).ToList(),
                 Skills = jobSeeker.Skills.Select(s => new SkillDto
                 {
                     SkillName = s.SkillName,
-                    ProficiencyLevel = s.ProficiencyLevel
+                   // ProficiencyLevel = s.ProficiencyLevel
                 }).ToList(),
                 WorkedAs = jobSeeker.WorkedAs.Select(w => new WorkedAsDto
                 {
                     JobTitle = w.JobTitle,
-                    StartDate = w.StartDate,
-                    EndDate = w.EndDate
+                    //StartDate = w.StartDate,
+                    //EndDate = w.EndDate
                 }).ToList()
             };
 
@@ -265,18 +265,16 @@ namespace JobConnect.Apis.Controllers
                 foreach (var c in updateDto.Certifications)
                 {
                     var exists = jobSeeker.Certifications.Any(x =>
-                        x.CertificationName == c.CertificationName &&
-                        x.IssuingOrganization == c.IssuingOrganization &&
-                        x.IssueDate == c.IssueDate);
+                        x.CertificationName == c.CertificationName /*&&  x.IssuingOrganization == c.IssuingOrganization &&x.IssueDate == c.IssueDate*/);
 
                     if (!exists)
                     {
                         jobSeeker.Certifications.Add(new JobSeekerCertification
                         {
                             CertificationName = c.CertificationName,
-                            IssuingOrganization = c.IssuingOrganization,
-                            IssueDate = c.IssueDate,
-                            ExpiryDate = c.ExpiryDate,
+                            //IssuingOrganization = c.IssuingOrganization,
+                            //IssueDate = c.IssueDate,
+                            //ExpiryDate = c.ExpiryDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -289,16 +287,15 @@ namespace JobConnect.Apis.Controllers
                 foreach (var c in updateDto.CompanyWorkedAt)
                 {
                     var exists = jobSeeker.CompanyWorkedAt.Any(x =>
-                        x.CompanyName == c.CompanyName &&
-                        x.StartDate == c.StartDate);
+                        x.CompanyName == c.CompanyName/* && x.StartDate == c.StartDate*/);
 
                     if (!exists)
                     {
                         jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
                         {
                             CompanyName = c.CompanyName,
-                            StartDate = c.StartDate,
-                            EndDate = c.EndDate,
+                           // StartDate = c.StartDate,
+                            //EndDate = c.EndDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -317,7 +314,7 @@ namespace JobConnect.Apis.Controllers
                         jobSeeker.Skills.Add(new JobSeekerSkill
                         {
                             SkillName = s.SkillName,
-                            ProficiencyLevel = s.ProficiencyLevel,
+                           // ProficiencyLevel = s.ProficiencyLevel,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -330,16 +327,15 @@ namespace JobConnect.Apis.Controllers
                 foreach (var w in updateDto.WorkedAs)
                 {
                     var exists = jobSeeker.WorkedAs.Any(x =>
-                        x.JobTitle == w.JobTitle &&
-                        x.StartDate == w.StartDate);
+                        x.JobTitle == w.JobTitle /*&& x.StartDate == w.StartDate*/);
 
                     if (!exists)
                     {
                         jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
                         {
                             JobTitle = w.JobTitle,
-                            StartDate = w.StartDate,
-                            EndDate = w.EndDate,
+                            //StartDate = w.StartDate,
+                            //EndDate = w.EndDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -360,7 +356,7 @@ namespace JobConnect.Apis.Controllers
             return Ok(new { message = "Profile deleted successfully." });
         }
         [HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
-        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId)
+        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId , string CoverLetter )
         {
             if (jobId <= 0 || resumeId <= 0)
                 return BadRequest(new { message = "Invalid job ID or resume ID." });
@@ -369,7 +365,8 @@ namespace JobConnect.Apis.Controllers
             var applyDto = new ApplyForJobByResumeIdDto
             {
                 JobId = jobId,
-                ResumeId = resumeId
+                ResumeId = resumeId,
+                CoverLetter = CoverLetter
             };
 
             await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);

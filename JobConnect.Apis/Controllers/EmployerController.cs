@@ -217,6 +217,46 @@ namespace JobConnect.Apis.Controllers
             }
         }
 
+        [HttpPost("AddToShortlist")] 
+        public async Task<IActionResult> AddToShortlist([FromBody] ShortlistDto shortlistDto)
+        {
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
+            if (job == null)
+                return NotFound(new { message = "Job not found or you don't have access to it." });
+
+            await _employerService.AddToShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
+            return Ok(new { message = "JobSeeker added to shortlist successfully." });
+        }
+
+        [HttpPost("RemoveFromShortlist")]
+        public async Task<IActionResult> RemoveFromShortlist([FromBody] ShortlistDto shortlistDto)
+        {
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var job = await _employerService.GetJobByIdAsync(shortlistDto.JobId, employerId);
+            if (job == null)
+                return NotFound(new { message = "Job not found or you don't have access to it." });
+
+            await _employerService.RemoveFromShortlistAsync(shortlistDto.JobId, shortlistDto.JobSeekerId);
+            return Ok(new { message = "JobSeeker removed from shortlist successfully." });
+        }
+
+        [HttpGet("GetShortlistedJobSeekers/{jobId}")]
+        public async Task<IActionResult> GetShortlistedJobSeekers(int jobId)
+        {
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var job = await _employerService.GetJobByIdAsync(jobId, employerId);
+            if (job == null)
+                return NotFound(new { message = "Job not found or you don't have access to it." });
+
+            var shortlistedJobSeekers = await _employerService.GetShortlistedJobSeekersAsync(jobId, employerId);
+            if (!shortlistedJobSeekers.Any())
+                return NotFound(new { message = "No shortlisted job seekers found for this job." });
+
+            return Ok(new { message = "Shortlisted job seekers retrieved successfully.", data = shortlistedJobSeekers });
+        }
+
+
         [HttpGet("GetJobSeekerById/{jobSeekerId}")]
         public async Task<IActionResult> GetJobSeekerById(string jobSeekerId)
         {
@@ -244,6 +284,27 @@ namespace JobConnect.Apis.Controllers
                 return Ok(new { message = "No resumes found for this JobSeeker.", data = new List<object>() });
 
             return Ok(new { message = "Resumes retrieved successfully.", data = resumes });
+        }
+
+        [HttpGet("GetApplicantsWithResume/{jobId}")]
+        public async Task<IActionResult> GetApplicantsWithResume(int jobId)
+        {
+            try
+            {
+                var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(employerId))
+                    return Unauthorized(new { message = "Invalid user." });
+
+                var applicants = await _employerService.GetApplicantsWithResumeAsync(jobId, employerId);
+                if (!applicants.Any())
+                    return Ok(new { message = "No applicants found for this job.", data = new List<object>() });
+
+                return Ok(new { message = "Applicants retrieved successfully.", data = applicants });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

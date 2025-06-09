@@ -210,7 +210,9 @@ namespace JobConnect.Apis.Repository
                 JobSeekerId = jobSeekerId,
                 JobId = applyDto.JobId,
                 Resume = resume.ResumePath,
-                ApplicationDate = DateTime.UtcNow
+                ApplicationDate = DateTime.UtcNow,
+                CoverLetter = applyDto.CoverLetter,
+             
             };
 
             await _context.Applications.AddAsync(application);
@@ -312,7 +314,8 @@ namespace JobConnect.Apis.Repository
                 .Select(r => new ResumeInfoDto
                 {
                     Id = r.Id,
-                    ResumeName = r.ResumeName
+                    ResumeName = r.ResumeName,
+                    ResumePath = r.ResumePath
                 })
                 .ToListAsync();
         }
