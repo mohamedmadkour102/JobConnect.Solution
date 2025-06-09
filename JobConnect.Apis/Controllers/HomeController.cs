@@ -16,6 +16,16 @@ namespace JobConnect.Apis.Controllers
         private readonly IEmailService _emailService;
         private readonly ILogger<HomeController> _logger;
 
+        private string GetTimeAgo(DateTime date)
+        {
+            TimeSpan timeSpan = DateTime.UtcNow - date;
+            if (timeSpan.TotalDays >= 7)
+                return $"{(int)timeSpan.TotalDays / 7} week ago";
+            else if (timeSpan.TotalDays >= 1)
+                return $"{(int)timeSpan.TotalDays} days ago";
+            return "Today";
+        }
+
         public HomeController(AppDbContext context, IEmailService emailService, ILogger<HomeController> logger)
         {
             _context = context;
@@ -134,9 +144,9 @@ namespace JobConnect.Apis.Controllers
 
         [HttpGet("GetAllJobs")]
         public async Task<IActionResult> GetAllJobs(
-     [FromQuery] Dictionary<string, string> filters,
-     [FromQuery] int pageNumber = 1,
-     [FromQuery] int pageSize = 10)
+            [FromQuery] Dictionary<string, string> filters,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
             try
             {
@@ -146,6 +156,7 @@ namespace JobConnect.Apis.Controllers
                     .Include(j => j.Employer)
                     .AsQueryable();
 
+                // Apply filters
                 if (filters != null && filters.Any())
                 {
                     foreach (var filter in filters)
@@ -201,51 +212,55 @@ namespace JobConnect.Apis.Controllers
                     }
                 }
 
+                // Count before pagination
                 var totalCount = await query.CountAsync();
 
+                // Get paginated result into memory first
                 var jobs = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .Select(j => new
-                    {
-                        j.Id,
-                        j.Title,
-                        j.Description,
-                        j.MinSalary,
-                        j.MaxSalary,
-                        j.SalaryType,
-                        j.Education,
-                        j.Experience,
-                        j.Vacancies,
-                        ExpirationDate = j.ExpirationDate.ToString("yyyy-MM-dd"),
-                        PostedDate = j.PostedDate.ToString("yyyy-MM-dd"),
-                        j.Status,
-                        j.ApplicationCount,
-                        j.JobType,
-                        j.WorkPlace,
-                        j.DaysRemaining,
-                        j.Location,
-
-                        Employer = j.Employer == null ? null : new
-                        {
-                            j.Employer.Id,
-                            j.Employer.CompanyName,
-                            j.Employer.Email,
-                            j.Employer.PhoneNumber,
-                            j.Employer.Industry
-                        }
-                    })
                     .ToListAsync();
 
-                _logger.LogInformation("Successfully fetched {Count} jobs (Page {PageNumber} with size {PageSize})", jobs.Count, pageNumber, pageSize);
+                // Now it's safe to use GetTimeAgo and other C# logic
+                var result = jobs.Select(j => new
+                {
+                    j.Id,
+                    j.Title,
+                    j.Description,
+                    j.MinSalary,
+                    j.MaxSalary,
+                    j.SalaryType,
+                    j.Education,
+                    j.Experience,
+                    j.Vacancies,
+                    ExpirationDate = j.ExpirationDate.ToString("yyyy-MM-dd"),
+                    PostedDate = GetTimeAgo(j.PostedDate),
+                    j.Status,
+                    j.ApplicationCount,
+                    j.JobType,
+                    j.WorkPlace,
+                    j.DaysRemaining,
+                    j.Location,
+
+                    Employer = j.Employer == null ? null : new
+                    {
+                        j.Employer.Id,
+                        j.Employer.CompanyName,
+                        j.Employer.Email,
+                        j.Employer.PhoneNumber,
+                        j.Employer.Industry
+                    }
+                }).ToList();
+
+                _logger.LogInformation("Successfully fetched {Count} jobs (Page {PageNumber} with size {PageSize})", result.Count, pageNumber, pageSize);
 
                 return Ok(new
                 {
-                    Message = jobs.Any() ? "Jobs retrieved successfully." : "No jobs found with the applied filters.",
+                    Message = result.Any() ? "Jobs retrieved successfully." : "No jobs found with the applied filters.",
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    Data = jobs
+                    Data = result
                 });
             }
             catch (Exception ex)
@@ -254,7 +269,5 @@ namespace JobConnect.Apis.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
             }
         }
-
-
     }
 }
