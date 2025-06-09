@@ -9,7 +9,7 @@ namespace JobConnect.Core.Models
         [Key]
         public int Id { get; set; }
         public string SkillName { get; set; } = string.Empty;
-        public int ProficiencyLevel { get; set; } // 1-10 for example
+        //public int ProficiencyLevel { get; set; } // 1-10 for example
 
         [ForeignKey("JobSeeker")]
         public string JobSeekerId { get; set; }
