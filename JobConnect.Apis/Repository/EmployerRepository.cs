@@ -119,10 +119,19 @@ namespace JobConnect.Apis.Repository
                 .CountAsync(j => j.EmployerId == employerId);
         }
 
+        //public async Task<int> GetCandidatesCountAsync(string employerId)
+        //{
+        //    return await _context.Applications
+        //        .CountAsync(a => a.Job.EmployerId == employerId);
+        //}
+
         public async Task<int> GetCandidatesCountAsync(string employerId)
         {
             return await _context.Applications
-                .CountAsync(a => a.Job.EmployerId == employerId);
+                .Where(a => a.Job.EmployerId == employerId)
+                .Select(a => a.JobSeekerId)
+                .Distinct()
+                .CountAsync();
         }
 
         public async Task AddToShortlistAsync(int jobId, string jobSeekerId)
@@ -170,7 +179,33 @@ namespace JobConnect.Apis.Repository
                 .Include(js => js.WorkedAs)
                 .FirstOrDefaultAsync(js => js.Id == jobSeekerId);
         }
- 
+        public async Task<bool> HireApplicantAsync(int jobId, string jobSeekerId)
+        {
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId && a.Status == "Pending");
+            if (application == null) return false;
+
+            var job = await _context.Jobs.FindAsync(jobId);
+            if (job == null || job.Vacancies <= 0) return false;
+
+            application.Status = "Accepted";
+            job.Vacancies -= 1;
+            job.ApplicationCount = _context.Applications.Count(a => a.JobId == jobId && a.Status == "Accepted");
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RejectApplicantAsync(int jobId, string jobSeekerId)
+        {
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId && a.Status == "Pending");
+            if (application == null) return false;
+
+            application.Status = "Rejected";
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
         public async Task<IEnumerable<Application>> GetApplicationsByJobAsync(int jobId)
         {

@@ -13,7 +13,7 @@ namespace JobConnect.Apis.Models
 			public JobSeeker JobSeeker { get; set; }
 
 			public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
-			public string Status { get; set; } = "Pending"; // Pending, Accepted, Rejected
+			public string Status { get; set; } = "Pending"; //  Accepted, Rejected
 
 		public string CoverLetter { get; set; } = string.Empty;
 		public string Resume { get; set; } = string.Empty; // Path to the uploaded PDF file

@@ -50,6 +50,8 @@ namespace JobConnect.Apis.IRepository
         Task<IEnumerable<Application>> GetShortlistedJobSeekersAsync(int jobId, string employerId);
         Task<JobSeeker?> GetJobSeekerByIdAsync(string jobSeekerId);
         Task<IEnumerable<Application>> GetApplicationsByJobAsync(int jobId);
+        Task<bool> HireApplicantAsync(int jobId, string jobSeekerId);
+        Task<bool> RejectApplicantAsync(int jobId, string jobSeekerId);
 
     }
 }
