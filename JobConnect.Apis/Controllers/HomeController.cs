@@ -1,9 +1,11 @@
 ﻿using JobConnect.Apis.DTO_s;
+using JobConnect.Apis.DTO_s.Admin;
 using JobConnect.Core.Models;
 using JobConnect.Core.Services;
 using JobConnect.Repository.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace JobConnect.Apis.Controllers
@@ -269,5 +271,58 @@ namespace JobConnect.Apis.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
             }
         }
+        [HttpGet("GetJobsByTags/{tag}/{tagId}")]
+        public async Task<IActionResult> GetJobsByTagAndId(string tag, int tagId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching jobs for tag: {Tag} and tagId: {TagId}", tag, tagId);
+
+                var jobs = await _context.Jobs
+                    .Include(j => j.Employer)
+                    .Include(j => j.Tags)
+                    .Include(j => j.Responsibilities)
+                    .Include(j => j.Applications)
+                    .Where(j => j.Tags.Any(t => t.Tag == tag && t.Id == tagId))
+                    .ToListAsync();
+
+                if (jobs == null || !jobs.Any())
+                {
+                    _logger.LogWarning("No jobs found for tag: {Tag} and tagId: {TagId}", tag, tagId);
+                    return Ok(new { message = $"No jobs found for tag {tag} and tagId {tagId}.", data = new List<object>() });
+                }
+
+                var result = jobs.Select(j => new JobDto
+                {
+                    Id = j.Id,
+                    Title = j.Title,
+                    Status = j.Status,
+                    ApplicationsCount = j.Applications.Count,
+                    JobType = j.JobType,
+                    DaysRemaining = CalculateDaysRemaining(j.ExpirationDate),
+                    PostedDate = GetTimeAgo(j.PostedDate),
+                    Location = j.Location,
+                    Tags = j.Tags.Select(t => t.Tag).ToList(),
+                    Responsibilities = j.Responsibilities.Select(r => r.Responsibility).ToList(),
+                    EmployerName = j.Employer.CompanyName
+                }).ToList();
+
+                _logger.LogInformation("Successfully retrieved {Count} jobs for tag: {Tag} and tagId: {TagId}", result.Count, tag, tagId);
+                return Ok(new { message = $"Jobs for tag {tag} and tagId {tagId} retrieved successfully.", data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching jobs for tag: {Tag} and tagId: {TagId}", tag, tagId);
+                return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
+            }
+        }
+
+
+        private int CalculateDaysRemaining(DateTime expirationDate)
+        {
+            int daysRemaining = (expirationDate - DateTime.UtcNow).Days;
+            return daysRemaining > 0 ? daysRemaining : 0;
+        }
+
     }
 }
