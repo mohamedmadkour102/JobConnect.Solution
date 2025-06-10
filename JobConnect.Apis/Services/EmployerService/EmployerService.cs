@@ -198,6 +198,7 @@ namespace JobConnect.Apis.Services
                     ResumeBase64 = string.IsNullOrEmpty(a.Resume) ? null : a.Resume,
                     CoverLetter = a.CoverLetter,
                     ApplicationDate = a.ApplicationDate,
+                    Status = a.Status,
                     IsShortlisted = a.IsShortlisted
                 }))).ToList()
             };
@@ -345,6 +346,7 @@ namespace JobConnect.Apis.Services
                     ResumeBase64 = string.IsNullOrEmpty(a.Resume) ? null : a.Resume,
                     CoverLetter = a.CoverLetter,
                     ApplicationDate = a.ApplicationDate,
+                    Status = a.Status,
                     IsShortlisted = a.IsShortlisted
                 }))).ToList()
             }));

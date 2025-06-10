@@ -61,6 +61,7 @@ namespace JobConnect.Apis.Services
                     ResumeBase64 = a.Resume ?? string.Empty,
                     CoverLetter = a.CoverLetter ?? string.Empty,
                     ApplicationDate = a.ApplicationDate,
+                    Status = a.Status ?? string.Empty,
                     IsShortlisted = a.IsShortlisted
                 })?.ToList() ?? new List<ApplicantDto>(),
                 MinSalary = job.MinSalary,
@@ -234,6 +235,7 @@ namespace JobConnect.Apis.Services
                     ResumeBase64 = a.Resume ?? string.Empty,
                     CoverLetter = a.CoverLetter ?? string.Empty,
                     ApplicationDate = a.ApplicationDate,
+                    Status = a.Status,
                     IsShortlisted = a.IsShortlisted
                 })?.ToList() ?? new List<ApplicantDto>(),
                 MinSalary = job.MinSalary,

@@ -8,6 +8,7 @@
 		public string CurrentOrDesiredJob { get; set; }
 		public int? YearsOfExperience { get; set; }
 		public string ResumeBase64 { get; set; }
+		public string Status { get; set; }
 		public string CoverLetter { get; set; }
 		public DateTime ApplicationDate { get; set; }
 		public bool IsShortlisted { get; set; }
