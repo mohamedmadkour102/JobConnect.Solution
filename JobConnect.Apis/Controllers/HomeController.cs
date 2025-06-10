@@ -178,7 +178,19 @@ namespace JobConnect.Apis.Controllers
                                 break;
 
                             case "experience":
-                                query = query.Where(j => j.Experience.ToLower() == value.ToLower());
+                                if (string.IsNullOrEmpty(value) || value == "All")
+                                    break;
+
+                                if (value.EndsWith("+"))
+                                {
+                                    var min = int.Parse(value.TrimEnd('+'));
+                                    query = query.Where(j => int.Parse(j.Experience) >= min);
+                                }
+                                else
+                                {
+                                    var range = value.Split('-').Select(int.Parse).ToArray();
+                                    query = query.Where(j => int.Parse(j.Experience) >= range[0] && int.Parse(j.Experience) <= range[1]);
+                                }
                                 break;
 
                             case "minsalary":
