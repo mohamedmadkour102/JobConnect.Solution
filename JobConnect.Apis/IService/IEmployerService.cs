@@ -56,5 +56,7 @@ namespace JobConnect.Apis.IService
         Task<SeekerProfileDto?> GetJobSeekerByIdAsync(string employerId, string jobSeekerId);
         Task<IEnumerable<ResumeDto>> GetSeekerResumesWithIdAsync(string jobSeekerId);
         Task<IEnumerable<JobApplicantWithResumeDto>> GetApplicantsWithResumeAsync(int jobId, string employerId);
+        Task<bool> HireApplicantAsync(string employerId, int jobId, string jobSeekerId);
+        Task<bool> RejectApplicantAsync(string employerId, int jobId, string jobSeekerId);
     }
 }

@@ -306,5 +306,34 @@ namespace JobConnect.Apis.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpPost("Hire")]
+        public async Task<IActionResult> Hire([FromBody] ApplicationActionDto dto)
+        {
+            if (dto == null || dto.JobId <= 0 || string.IsNullOrEmpty(dto.JobSeekerId))
+                return BadRequest(new { message = "Invalid job or job seeker data provided." });
+
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var success = await _employerService.HireApplicantAsync(employerId, dto.JobId, dto.JobSeekerId);
+
+            if (!success)
+                return BadRequest(new { message = "Failed to hire applicant. Check if job has vacancies or application exists." });
+
+            return Ok(new { message = "Applicant hired successfully." });
+        }
+
+        [HttpPost("Reject")]
+        public async Task<IActionResult> Reject([FromBody] ApplicationActionDto dto)
+        {
+            if (dto == null || dto.JobId <= 0 || string.IsNullOrEmpty(dto.JobSeekerId))
+                return BadRequest(new { message = "Invalid job or job seeker data provided." });
+
+            var employerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var success = await _employerService.RejectApplicantAsync(employerId, dto.JobId, dto.JobSeekerId);
+
+            if (!success)
+                return BadRequest(new { message = "Failed to reject applicant. Check if application exists." });
+
+            return Ok(new { message = "Applicant rejected successfully." });
+        }
     }
 }

@@ -6,6 +6,8 @@ using JobConnect.Apis.IService;
 using JobConnect.Apis.Models;
 using JobConnect.Apis.DTO_s.SeekerDto;
 using JobDto = JobConnect.Apis.DTO_s.EmployerDto.JobDto;
+using Microsoft.EntityFrameworkCore;
+using JobConnect.Repository.Data;
 
 
 namespace JobConnect.Apis.Services
@@ -16,13 +18,16 @@ namespace JobConnect.Apis.Services
         private readonly UserManager<User> _userManager;
         private readonly IWebHostEnvironment _environment;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly AppDbContext _context;
 
-        public EmployerService(IEmployerRepository employerRepository, UserManager<User> userManager, IWebHostEnvironment environment, ICloudinaryService cloudinaryService)
+        public EmployerService(IEmployerRepository employerRepository, UserManager<User> userManager, IWebHostEnvironment environment,
+            ICloudinaryService cloudinaryService ,AppDbContext context )
         {
             _employerRepository = employerRepository;
             _userManager = userManager;
             _environment = environment;
             _cloudinaryService = cloudinaryService;
+            _context = context;
         }
 
         public async Task<Employer> GetEmployerByIdAsync(string employerId)
@@ -474,7 +479,23 @@ namespace JobConnect.Apis.Services
                 IsShortlisted = a.IsShortlisted
             }));
         }
+        public async Task<bool> HireApplicantAsync(string employerId, int jobId, string jobSeekerId)
+        {
+            var job = await _context.Jobs
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.EmployerId == employerId);
+            if (job == null) return false;
 
+            return await _employerRepository.HireApplicantAsync(jobId, jobSeekerId);
+        }
+
+        public async Task<bool> RejectApplicantAsync(string employerId, int jobId, string jobSeekerId)
+        {
+            var job = await _context.Jobs
+                .FirstOrDefaultAsync(j => j.Id == jobId && j.EmployerId == employerId);
+            if (job == null) return false;
+
+            return await _employerRepository.RejectApplicantAsync(jobId, jobSeekerId);
+        }
         private string GetTimeAgo(DateTime date)
         {
             TimeSpan timeSpan = DateTime.UtcNow - date;
