@@ -79,7 +79,10 @@
 //} 
 #endregion
 
+using JobConnect.Apis.DTO_s.Admin;
 using JobConnect.Apis.IService;
+using JobConnect.Apis.Services;
+using JobConnect.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -93,9 +96,11 @@ namespace JobConnect.Apis.Controllers
 	{
 		private readonly IAdminService _adminService;
 
+
 		public AdminController(IAdminService adminService)
 		{
 			_adminService = adminService;
+
 		}
 
 		[HttpGet("employers")]
@@ -154,5 +159,7 @@ namespace JobConnect.Apis.Controllers
 
 			return Ok(new { message = $"Jobs for tag {tag} retrieved successfully.", data = jobs });
 		}
+		
+
 	}
 }

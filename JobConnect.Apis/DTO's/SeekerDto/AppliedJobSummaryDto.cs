@@ -18,6 +18,7 @@ namespace JobConnect.Apis.DTO_s.SeekerDto
         public string Experience { get; set; } = string.Empty;
         public string PostedDate { get; set; } = string.Empty;
         public EmployerInfo Employer { get; set; }
+        public string SalaryType {  get; set; }
 
     }
 }

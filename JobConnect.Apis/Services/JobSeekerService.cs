@@ -1,5 +1,4 @@
-﻿
-using JobConnect.Apis.DTO_s.SeekerDto;
+﻿using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
 using JobConnect.Core.Models;
@@ -8,6 +7,9 @@ using JobConnect.Apis.DTO_s.EmployerDto;
 using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using JobConnect.Core.IService;
 
 namespace JobConnect.Apis.Services
 {
@@ -16,12 +18,18 @@ namespace JobConnect.Apis.Services
         private readonly IJobSeekerRepository _jobSeekerRepository;
         private readonly IWebHostEnvironment _environment;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
 
-        public JobSeekerService(IJobSeekerRepository jobSeekerRepository, IWebHostEnvironment environment, ICloudinaryService cloudinaryService)
+        public JobSeekerService(
+            IJobSeekerRepository jobSeekerRepository, 
+            IWebHostEnvironment environment, 
+            ICloudinaryService cloudinaryService,
+            INotificationService notificationService)
         {
             _jobSeekerRepository = jobSeekerRepository;
             _environment = environment;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
         }
 
         public async Task<JobSeeker> GetJobSeekerByIdAsync(string jobSeekerId)
@@ -182,6 +190,10 @@ namespace JobConnect.Apis.Services
             if (jobSeeker == null)
                 throw new Exception("JobSeeker not found.");
 
+            var job = await _jobSeekerRepository.GetJobByIdAsync(applyDto.JobId);
+            if (job == null)
+                throw new Exception("Job not found.");
+
             if (!string.IsNullOrEmpty(applyDto.SelectedResumePath))
             {
                 var selectedResume = jobSeeker.Resumes.FirstOrDefault(r => r.ResumePath == applyDto.SelectedResumePath);
@@ -197,19 +209,29 @@ namespace JobConnect.Apis.Services
                 var newResume = new JobSeekerResume
                 {
                     JobSeekerId = jobSeekerId,
-                    ResumePath = resumePath,
-                    ResumeName = applyDto.Resume.FileName,
-                    UploadDate = DateTime.UtcNow
+                    ResumePath = resumePath
                 };
+
                 jobSeeker.Resumes.Add(newResume);
-                await _jobSeekerRepository.UpdateJobSeekerAsync(jobSeeker);
             }
             else
             {
-                throw new Exception("You must either select an existing resume or upload a new one.");
+                throw new Exception("No resume provided.");
             }
 
+            
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
+            await _jobSeekerRepository.SaveChangesAsync();
+
+           
+            await _notificationService.SendNotificationToUserAsync(jobSeekerId, new Notification
+            {
+                Title = "تم تقديم طلبك بنجاح",
+                Message = $"تم تقديم طلبك للوظيفة {job.Title} بنجاح",
+                Type = NotificationType.ApplicationStatus,
+                DataJson = JsonSerializer.Serialize(new { jobId = job.Id }),
+                RedirectUrl = $"/jobs/{job.Id}"
+            });
         }
 
 
@@ -222,7 +244,7 @@ namespace JobConnect.Apis.Services
             {
                 Id = job.Id,
                 Title = job.Title ?? string.Empty,
-                
+                SalaryType = job.SalaryType,
                 Location = job.Location ?? string.Empty,
                 CreatedAt = GetTimeAgo(job.PostedDate),
                 Applicants = job.Applications?.Select(a => new ApplicantDto
@@ -315,6 +337,19 @@ namespace JobConnect.Apis.Services
 
             return (jobDtos, totalCount);
         }
+        //public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
+        //{
+        //    var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+        //    if (jobSeeker == null)
+        //        throw new Exception("JobSeeker not found.");
+
+        //    var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == applyDto.ResumeId);
+        //    if (resume == null)
+        //        throw new Exception("Selected resume not found in your profile.");
+
+        //    await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+
+        //}
         public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
         {
             var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
@@ -325,8 +360,26 @@ namespace JobConnect.Apis.Services
             if (resume == null)
                 throw new Exception("Selected resume not found in your profile.");
 
+            var job = await _jobSeekerRepository.GetJobByIdAsync(applyDto.JobId);
+            if (job == null)
+                throw new Exception("Job not found.");
+
             await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+
+            await _jobSeekerRepository.SaveChangesAsync();
+
+            await _notificationService.SendNotificationToUserAsync(jobSeekerId, new Notification
+            {
+                Title = "تم تقديم طلبك بنجاح",
+                Message = $"تم تقديم طلبك للوظيفة {job.Title} بنجاح",
+                Type = NotificationType.ApplicationStatus,
+                DataJson = JsonSerializer.Serialize(new { jobId = job.Id }),
+                RedirectUrl = $"/jobs/{job.Id}"
+            });
         }
+ 
+
+
 
         public async Task<EmployerProfileDto> GetEmployerByIdAsync(string employerId)
         {

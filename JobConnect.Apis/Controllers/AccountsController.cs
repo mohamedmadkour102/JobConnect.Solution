@@ -32,153 +32,157 @@ namespace JobConnect.Apis.Controllers
 			_logger = logger;
 		}
 
-		[HttpPost("Register/Employer")]
-		public async Task<IActionResult> RegisterEmployer([FromBody] EmployerRegistrationDto dto)
-		{
-			try
-			{
-				_logger.LogInformation("Starting employer registration for email: {Email}", dto.Email);
+   
+        [HttpPost("Register/Employer")]
+        public async Task<IActionResult> RegisterEmployer([FromBody] EmployerRegistrationDto dto)
+        {
+            try
+            {
+                _logger.LogInformation("Starting employer registration for email: {Email}", dto.Email);
 
-				var employer = new Employer
-				{
-					FirstName = dto.FirstName,
-					LastName = dto.LastName,
-					Email = dto.Email,
-					PhoneNumber = dto.PhoneNumber,
+                var employer = new Employer
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    PhoneNumber = dto.PhoneNumber,
                     UserName = $"{dto.FirstName}{dto.LastName}",
-					CompanyName	= dto.CompanyName,
-					CompanyDescription = dto.CompanyDescription,
-					CompanySize = dto.CompanySize,
-					Industry	= dto.Industry,
-					Address = dto.Address,
-					Website = dto.Website,
-
+                    CompanyName = dto.CompanyName,
+                    CompanyDescription = dto.CompanyDescription,
+                    CompanySize = dto.CompanySize,
+                    Industry = dto.Industry,
+                    Address = dto.Address,
+                    Website = dto.Website,
                 };
 
-				var result = await _userManager.CreateAsync(employer, dto.Password);
-				if (!result.Succeeded)
-				{
-					_logger.LogWarning("Employer registration failed for {Email}: {Errors}",
-						dto.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
-					return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
-				}
+                var result = await _userManager.CreateAsync(employer, dto.Password);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("Employer registration failed for {Email}: {Errors}",
+                        dto.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+                }
 
-				await _userManager.AddToRoleAsync(employer, "Employer");
-				_logger.LogInformation("Employer registered successfully with ID: {Id}", employer.Id);
+                await _userManager.AddToRoleAsync(employer, "Employer");
+                _logger.LogInformation("Employer registered successfully with ID: {Id}", employer.Id);
 
-				var (token, refreshToken) = await _tokenService.GenerateTokensAsync(employer);
+                var (token, refreshToken) = await _tokenService.GenerateTokensAsync(employer);
 
-				return Ok(new
-				{
-					Name = $"{employer.FirstName} {employer.LastName}",
-					Email = employer.Email,
-					Token = token,
-					Role = "Employer",
-					RefreshToken = refreshToken
-				});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Error during employer registration for {Email}", dto.Email);
-				return StatusCode(500, new { Message = "An error occurred during registration." });
-			}
-		}
+                return Ok(new
+                {
+                    Id = employer.Id, 
+                    Name = $"{employer.FirstName} {employer.LastName}",
+                    Email = employer.Email,
+                    Token = token,
+                    Role = "Employer",
+                    RefreshToken = refreshToken
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during employer registration for {Email}", dto.Email);
+                return StatusCode(500, new { Message = "An error occurred during registration." });
+            }
+        }
 
-		[HttpPost("Register/JobSeeker")]
-		public async Task<IActionResult> RegisterJobSeeker([FromBody] JobSeekerRegistrationDto dto)
-		{
-			try
-			{
-				_logger.LogInformation("Starting job seeker registration for email: {Email}", dto.Email);
+        [HttpPost("Register/JobSeeker")]
+        public async Task<IActionResult> RegisterJobSeeker([FromBody] JobSeekerRegistrationDto dto)
+        {
+            try
+            {
+                _logger.LogInformation("Starting job seeker registration for email: {Email}", dto.Email);
 
-				var jobSeeker = new JobSeeker
-				{
-					FirstName = dto.FirstName,
-					LastName = dto.LastName,
-					Email = dto.Email,
-					PhoneNumber = dto.PhoneNumber,
-					Address = dto.Address,
+                var jobSeeker = new JobSeeker
+                {
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    Email = dto.Email,
+                    PhoneNumber = dto.PhoneNumber,
+                    Address = dto.Address,
                     UserName = $"{dto.FirstName}{dto.LastName}",
-					YearsOfExperience = dto.YearsOfExperience,
-					CurrentOrDesiredJob = dto.CurrentOrDesiredJob,
-					Degree = dto.Degree
-
+                    YearsOfExperience = dto.YearsOfExperience,
+                    CurrentOrDesiredJob = dto.CurrentOrDesiredJob,
+                    Degree = dto.Degree
                 };
 
-				var result = await _userManager.CreateAsync(jobSeeker, dto.Password);
-				if (!result.Succeeded)
-				{
-					_logger.LogWarning("Job seeker registration failed for {Email}: {Errors}",
-						dto.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
-					return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
-				}
+                var result = await _userManager.CreateAsync(jobSeeker, dto.Password);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("Job seeker registration failed for {Email}: {Errors}",
+                        dto.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
+                }
 
-				await _userManager.AddToRoleAsync(jobSeeker, "JobSeeker");
-				_logger.LogInformation("Job seeker registered successfully with ID: {Id}", jobSeeker.Id);
+                await _userManager.AddToRoleAsync(jobSeeker, "JobSeeker");
+                _logger.LogInformation("Job seeker registered successfully with ID: {Id}", jobSeeker.Id);
 
-				var (token, refreshToken) = await _tokenService.GenerateTokensAsync(jobSeeker);
+                var (token, refreshToken) = await _tokenService.GenerateTokensAsync(jobSeeker);
 
-				return Ok(new
-				{
-					Name = $"{jobSeeker.FirstName} {jobSeeker.LastName}",
-					Email = jobSeeker.Email,
-					Token = token,
-					Role = "JobSeeker",
-					RefreshToken = refreshToken
-				});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Error during job seeker registration for {Email}", dto.Email);
-				return StatusCode(500, new { Message = "An error occurred during registration." });
-			}
-		}
+                return Ok(new
+                {
+                    Id = jobSeeker.Id, 
+                    Name = $"{jobSeeker.FirstName} {jobSeeker.LastName}",
+                    Email = jobSeeker.Email,
+                    Token = token,
+                    Role = "JobSeeker",
+                    RefreshToken = refreshToken
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during job seeker registration for {Email}", dto.Email);
+                return StatusCode(500, new { Message = "An error occurred during registration." });
+            }
+        }
 
-		[HttpPost("Login")]
-		public async Task<IActionResult> Login([FromBody] LoginDto dto)
-		{
-			try
-			{
-				_logger.LogInformation("Login attempt for email: {Email}", dto.Email);
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            try
+            {
+                _logger.LogInformation("Login attempt for email: {Email}", dto.Email);
 
-				var user = await _userManager.FindByEmailAsync(dto.Email);
-				if (user == null)
-				{
-					_logger.LogWarning("Login failed: User with email {Email} not found", dto.Email);
-					return Unauthorized(new { Message = "Invalid email or password." });
-				}
+                var user = await _userManager.FindByEmailAsync(dto.Email);
+                if (user == null)
+                {
+                    _logger.LogWarning("Login failed: User with email {Email} not found", dto.Email);
+                    return Unauthorized(new { Message = "Invalid email or password." });
+                }
 
-				var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
-				if (!result.Succeeded)
-				{
-					_logger.LogWarning("Login failed: Incorrect password for {Email}", dto.Email);
-					return Unauthorized(new { Message = "Invalid email or password." });
-				}
+                var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
+                if (!result.Succeeded)
+                {
+                    _logger.LogWarning("Login failed: Incorrect password for {Email}", dto.Email);
+                    return Unauthorized(new { Message = "Invalid email or password." });
+                }
 
-				var roles = await _userManager.GetRolesAsync(user);
-				var role = roles.FirstOrDefault();
+                var roles = await _userManager.GetRolesAsync(user);
+                var role = roles.FirstOrDefault();
 
-				var (token, refreshToken) = await _tokenService.GenerateTokensAsync(user);
+                var (token, refreshToken) = await _tokenService.GenerateTokensAsync(user);
 
-				_logger.LogInformation("Login successful for {Email}, Role: {Role}", dto.Email, role);
+                _logger.LogInformation("Login successful for {Email}, Role: {Role}", dto.Email, role);
 
-				return Ok(new
-				{
-					Name = $"{user.FirstName} {user.LastName}",
-					Email = user.Email,
-					Token = token,
-					Role = role,
-					RefreshToken = refreshToken
-				});
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Error during login for {Email}", dto.Email);
-				return StatusCode(500, new { Message = "An error occurred during login." });
-			}
-		}
+                return Ok(new
+                {
+                    Id = user.Id,
+                    Name = $"{user.FirstName} {user.LastName}",
+                    Email = user.Email,
+                    Token = token,
+                    Role = role,
+                    RefreshToken = refreshToken
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login for {Email}", dto.Email);
+                return StatusCode(500, new { Message = "An error occurred during login." });
+            }
+        }
 
-		[HttpPost("Logout")]
+
+
+        [HttpPost("Logout")]
 		public async Task<IActionResult> Logout([FromBody] RefreshTokenDto dto)
 		{
 			try

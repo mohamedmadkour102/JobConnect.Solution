@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using JobConnect.Apis.DTO_s.Admin;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
+using Microsoft.EntityFrameworkCore;
+using JobConnect.Repository.Data;
 
 
 namespace JobConnect.Apis.Services
@@ -15,11 +17,13 @@ namespace JobConnect.Apis.Services
 	public class AdminService : IAdminService
 	{
 		private readonly IAdminRepository _adminRepository;
+        private readonly AppDbContext _context;
 
-		public AdminService(IAdminRepository adminRepository)
+        public AdminService(IAdminRepository adminRepository , AppDbContext context)
 		{
 			_adminRepository = adminRepository;
-		}
+            _context = context;
+        }
 
 		public async Task<IEnumerable<EmployerDto>> GetAllEmployersAsync()
 		{
@@ -113,8 +117,29 @@ namespace JobConnect.Apis.Services
 				EmployerName = j.Employer.CompanyName
 			});
 		}
+        public async Task<Application> UpdateApplicationStatusAsync(string applicationId, string status)
+        {
+            // Validate status (optional, based on your requirements)
+            var validStatuses = new[] { "Pending", "Accepted", "Rejected" };
+            if (!validStatuses.Contains(status))
+                throw new InvalidOperationException($"Invalid status: {status}. Valid statuses are: {string.Join(", ", validStatuses)}.");
+            if (!int.TryParse(applicationId, out int parsedApplicationId))
+                throw new ArgumentException($"Invalid applicationId: {applicationId}. It must be a valid integer.");
+            // Find the application
+            var application = await _context.Applications
+                    .Include(a => a.JobSeeker) // Include JobSeeker for notification
+                    .FirstOrDefaultAsync(a => a.Id == parsedApplicationId);
 
-		private string GetTimeAgo(DateTime date)
+            if (application == null)
+                return null;
+
+            // Update status
+            application.Status = status;
+            await _context.SaveChangesAsync();
+
+            return application;
+        }
+        private string GetTimeAgo(DateTime date)
 		{
 			TimeSpan timeSpan = DateTime.UtcNow - date;
 			if (timeSpan.TotalDays >= 7)

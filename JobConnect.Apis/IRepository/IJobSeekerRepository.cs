@@ -52,6 +52,7 @@ namespace JobConnect.Apis.IRepository
         Task UploadResumeAsync(string jobSeekerId, UploadResumeDto uploadDto);
         Task DeleteResumeAsync(string jobSeekerId, int resumeId);
         Task<IEnumerable<ResumeInfoDto>> GetResumesAsync(string jobSeekerId);
+       // Task<bool> HasAlreadyAppliedAsync(string jobSeekerId, int jobId, int resumeId);
     }
 }
     
