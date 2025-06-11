@@ -79,7 +79,10 @@
 //} 
 #endregion
 
+using JobConnect.Apis.DTO_s.Admin;
 using JobConnect.Apis.IService;
+using JobConnect.Apis.Services;
+using JobConnect.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -92,11 +95,13 @@ namespace JobConnect.Apis.Controllers
 	public class AdminController : ControllerBase
 	{
 		private readonly IAdminService _adminService;
+        private readonly INotificationService _notificationService;
 
-		public AdminController(IAdminService adminService)
+        public AdminController(IAdminService adminService , INotificationService notificationService)
 		{
 			_adminService = adminService;
-		}
+            _notificationService = notificationService;
+        }
 
 		[HttpGet("employers")]
 		public async Task<IActionResult> GetAllEmployers()
@@ -154,5 +159,26 @@ namespace JobConnect.Apis.Controllers
 
 			return Ok(new { message = $"Jobs for tag {tag} retrieved successfully.", data = jobs });
 		}
-	}
+        [HttpPost("application/{applicationId}/status")]
+        public async Task<IActionResult> UpdateApplicationStatus(string applicationId, [FromBody] UpdateApplicationStatusRequest request)
+        {
+            // Assume you have a method in _adminService to update application status
+            var application = await _adminService.UpdateApplicationStatusAsync(applicationId, request.Status);
+            if (application == null)
+                return NotFound(new { message = $"Application with ID {applicationId} not found." });
+
+            // Send notification to JobSeeker
+            var notification = new Notification
+            {
+                Title = "Application Status Update",
+                Message = $"Your application for job ID {application.JobId} has been {request.Status}.",
+                Redirect = $"app/jobs/{application.JobId}",
+                Type = "application_status"
+            };
+
+            await _notificationService.SendNotificationAsync(application.JobSeekerId, notification);
+
+            return Ok(new { message = "Application status updated and notification sent." });
+        }
+    }
 }

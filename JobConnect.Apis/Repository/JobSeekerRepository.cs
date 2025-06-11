@@ -78,7 +78,13 @@ namespace JobConnect.Apis.Repository
                 .Select(sj => sj.Job)
                 .ToListAsync();
         }
-
+        //public async Task<bool> HasAlreadyAppliedAsync(string jobSeekerId, int jobId, int resumeId)
+        //{
+        //    return await _context.Applications.AnyAsync(app =>
+        //        app.JobSeekerId == jobSeekerId &&
+        //        app.JobId == jobId &&
+        //        app.== resumeId);
+        //}
         public async Task SaveJobAsync(string jobSeekerId, int jobId)
         {
             var existing = await _context.SavedJobs
@@ -195,6 +201,30 @@ namespace JobConnect.Apis.Repository
         {
             await _context.SaveChangesAsync();
         }
+        //public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
+        //{
+        //    var jobSeeker = await GetJobSeekerByIdAsync(jobSeekerId);
+        //    if (jobSeeker == null)
+        //        throw new Exception("JobSeeker not found.");
+
+        //    var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == applyDto.ResumeId);
+        //    if (resume == null)
+        //        throw new Exception("Selected resume not found in your profile.");
+
+        //    var application = new Application
+        //    {
+        //        JobSeekerId = jobSeekerId,
+        //        JobId = applyDto.JobId,
+        //        Resume = resume.ResumePath,
+        //        ApplicationDate = DateTime.UtcNow,
+        //        CoverLetter = applyDto.CoverLetter,
+
+        //    };
+
+        //    await _context.Applications.AddAsync(application);
+        //    await SaveChangesAsync();
+        //}
+
         public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
         {
             var jobSeeker = await GetJobSeekerByIdAsync(jobSeekerId);
@@ -205,6 +235,12 @@ namespace JobConnect.Apis.Repository
             if (resume == null)
                 throw new Exception("Selected resume not found in your profile.");
 
+            // Check if the job seeker has already applied for this job
+            var existingApplication = await _context.Applications
+                .AnyAsync(a => a.JobSeekerId == jobSeekerId && a.JobId == applyDto.JobId);
+            if (existingApplication)
+                throw new Exception("You have already applied for this job.");
+
             var application = new Application
             {
                 JobSeekerId = jobSeekerId,
@@ -212,7 +248,6 @@ namespace JobConnect.Apis.Repository
                 Resume = resume.ResumePath,
                 ApplicationDate = DateTime.UtcNow,
                 CoverLetter = applyDto.CoverLetter,
-             
             };
 
             await _context.Applications.AddAsync(application);

@@ -8,6 +8,7 @@ using JobConnect.Apis.DTO_s.EmployerDto;
 using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace JobConnect.Apis.Services
 {
@@ -222,7 +223,7 @@ namespace JobConnect.Apis.Services
             {
                 Id = job.Id,
                 Title = job.Title ?? string.Empty,
-                
+                SalaryType = job.SalaryType,
                 Location = job.Location ?? string.Empty,
                 CreatedAt = GetTimeAgo(job.PostedDate),
                 Applicants = job.Applications?.Select(a => new ApplicantDto
@@ -327,6 +328,40 @@ namespace JobConnect.Apis.Services
 
             await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
         }
+
+        //public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
+        //{
+        //    var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+        //    if (jobSeeker == null)
+        //        throw new Exception("JobSeeker not found.");
+
+        //    var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == applyDto.ResumeId);
+        //    if (resume == null)
+        //        throw new Exception("Selected resume not found in your profile.");
+
+        //    // ✅ التحقق من التقديم المكرر بناءً على JobId و JobSeekerId و Resume (كـ string path)
+        //    var alreadyApplied = await _context.Applications.AnyAsync(app =>
+        //        app.JobSeekerId == jobSeekerId &&
+        //        app.JobId == applyDto.JobId &&
+        //        app.Resume == resume.Path); // Assuming resume.Path is the path used in Application.Resume
+
+        //    if (alreadyApplied)
+        //        throw new Exception("You have already applied to this job using this resume.");
+
+        //    // ✅ تقديم الطلب
+        //    var application = new Application
+        //    {
+        //        JobId = applyDto.JobId,
+        //        JobSeekerId = jobSeekerId,
+        //        CoverLetter = applyDto.CoverLetter,
+        //        Resume = resume// Store resume path
+        //    };
+
+        //    _context.Applications.Add(application);
+        //    await _context.SaveChangesAsync();
+        //}
+
+
 
         public async Task<EmployerProfileDto> GetEmployerByIdAsync(string employerId)
         {

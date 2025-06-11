@@ -16,6 +16,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using JobConnect.Apis.Services;
 using JobConnect.Apis.Helpers;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,7 +69,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null));
 });
+//var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
 
+
+//if (!File.Exists(firebaseCredentialsPath))
+//{
+//    throw new FileNotFoundException("Firebase credentials file not found.", firebaseCredentialsPath);
+//}
+
+
+//FirebaseApp.Create(new AppOptions
+//{
+//    Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
+//});
 builder.Services.AddScoped<ITokenServices, TokenServices>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -79,6 +93,7 @@ builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddIdentity<User, IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()
@@ -170,8 +185,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-    c.RoutePrefix = string.Empty;
-    //c.RoutePrefix = "Swagger";
+   // c.RoutePrefix = string.Empty;
+    c.RoutePrefix = "Swagger";
 
 });
 

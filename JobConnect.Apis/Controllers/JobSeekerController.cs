@@ -228,124 +228,7 @@ namespace JobConnect.Apis.Controllers
             return Ok(new { message = "Profile retrieved successfully.", data = profile });
         }
 
-        //[HttpPut("UpdateSeekerProfile")]
-        //public async Task<IActionResult> UpdateSeekerProfile([FromBody] UpdateSeekerProfileDto updateDto)
-        //{
-        //    if (updateDto == null)
-        //        return BadRequest(new { message = "Invalid profile data." });
 
-        //    var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var jobSeeker = await _jobSeekerService.GetSeekerProfileAsync(jobSeekerId);
-        //    if (jobSeeker == null)
-        //        return NotFound(new { message = "JobSeeker not found." });
-
-        //    // Update scalar properties if provided
-        //    if (!string.IsNullOrEmpty(updateDto.Address)) jobSeeker.Address = updateDto.Address;
-        //    if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
-        //    if (!string.IsNullOrEmpty(updateDto.Degree)) jobSeeker.Degree = updateDto.Degree;
-        //    if (!string.IsNullOrEmpty(updateDto.CurrentOrDesiredJob)) jobSeeker.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
-        //    if (!string.IsNullOrEmpty(updateDto.Bio)) jobSeeker.Bio = updateDto.Bio;
-        //    if (!string.IsNullOrEmpty(updateDto.CoverLetter)) jobSeeker.CoverLetter = updateDto.CoverLetter;
-        //    if (updateDto.DateOfBirth.HasValue) jobSeeker.DateOfBirth = updateDto.DateOfBirth;
-        //    if (!string.IsNullOrEmpty(updateDto.Nationality)) jobSeeker.Nationality = updateDto.Nationality;
-        //    if (!string.IsNullOrEmpty(updateDto.MaritalStatus)) jobSeeker.MaritalStatus = updateDto.MaritalStatus;
-        //    if (!string.IsNullOrEmpty(updateDto.Gender)) jobSeeker.Gender = updateDto.Gender;
-        //    if (!string.IsNullOrEmpty(updateDto.Education)) jobSeeker.Education = updateDto.Education;
-        //    if (!string.IsNullOrEmpty(updateDto.Portfolio)) jobSeeker.Portfolio = updateDto.Portfolio;
-        //    if (!string.IsNullOrEmpty(updateDto.FacebookLink)) jobSeeker.FacebookLink = updateDto.FacebookLink;
-        //    if (!string.IsNullOrEmpty(updateDto.TwitterLink)) jobSeeker.TwitterLink = updateDto.TwitterLink;
-        //    if (!string.IsNullOrEmpty(updateDto.InstagramLink)) jobSeeker.InstagramLink = updateDto.InstagramLink;
-        //    if (!string.IsNullOrEmpty(updateDto.LinkedInLink)) jobSeeker.LinkedInLink = updateDto.LinkedInLink;
-        //    if (!string.IsNullOrEmpty(updateDto.CollegeName)) jobSeeker.CollegeName = updateDto.CollegeName;
-        //    if (!string.IsNullOrEmpty(updateDto.University)) jobSeeker.University = updateDto.University;
-
-        //    // Append Certifications (instead of full replace)
-        //    if (updateDto.Certifications != null && updateDto.Certifications.Any())
-        //    {
-        //        foreach (var c in updateDto.Certifications)
-        //        {
-        //            var exists = jobSeeker.Certifications.Any(x =>
-        //                x.CertificationName == c.CertificationName /*&&  x.IssuingOrganization == c.IssuingOrganization &&x.IssueDate == c.IssueDate*/);
-
-        //            if (!exists)
-        //            {
-        //                jobSeeker.Certifications.Add(new JobSeekerCertification
-        //                {
-        //                    CertificationName = c.CertificationName,
-        //                    //IssuingOrganization = c.IssuingOrganization,
-        //                    //IssueDate = c.IssueDate,
-        //                    //ExpiryDate = c.ExpiryDate,
-        //                    JobSeekerId = jobSeekerId
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    // Append CompanyWorkedAt
-        //    if (updateDto.CompanyWorkedAt != null && updateDto.CompanyWorkedAt.Any())
-        //    {
-        //        foreach (var c in updateDto.CompanyWorkedAt)
-        //        {
-        //            var exists = jobSeeker.CompanyWorkedAt.Any(x =>
-        //                x.CompanyName == c.CompanyName/* && x.StartDate == c.StartDate*/);
-
-        //            if (!exists)
-        //            {
-        //                jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
-        //                {
-        //                    CompanyName = c.CompanyName,
-        //                   // StartDate = c.StartDate,
-        //                    //EndDate = c.EndDate,
-        //                    JobSeekerId = jobSeekerId
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    // Append Skills
-        //    if (updateDto.Skills != null && updateDto.Skills.Any())
-        //    {
-        //        foreach (var s in updateDto.Skills)
-        //        {
-        //            var exists = jobSeeker.Skills.Any(x => x.SkillName == s.SkillName);
-
-        //            if (!exists)
-        //            {
-        //                jobSeeker.Skills.Add(new JobSeekerSkill
-        //                {
-        //                    SkillName = s.SkillName,
-        //                   // ProficiencyLevel = s.ProficiencyLevel,
-        //                    JobSeekerId = jobSeekerId
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    // Append WorkedAs
-        //    if (updateDto.WorkedAs != null && updateDto.WorkedAs.Any())
-        //    {
-        //        foreach (var w in updateDto.WorkedAs)
-        //        {
-        //            var exists = jobSeeker.WorkedAs.Any(x =>
-        //                x.JobTitle == w.JobTitle /*&& x.StartDate == w.StartDate*/);
-
-        //            if (!exists)
-        //            {
-        //                jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
-        //                {
-        //                    JobTitle = w.JobTitle,
-        //                    //StartDate = w.StartDate,
-        //                    //EndDate = w.EndDate,
-        //                    JobSeekerId = jobSeekerId
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker);
-
-        //    return Ok(new { message = "Profile updated successfully." });
-        //}
         [HttpPut("UpdateSeekerProfile")]
         public async Task<IActionResult> UpdateSeekerProfile([FromBody] UpdateSeekerProfileDto updateDto)
         {
@@ -468,8 +351,25 @@ namespace JobConnect.Apis.Controllers
             await _jobSeekerService.DeleteJobSeekerAsync(jobSeekerId);
             return Ok(new { message = "Profile deleted successfully." });
         }
+        //[HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
+        //public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId , string CoverLetter )
+        //{
+        //    if (jobId <= 0 || resumeId <= 0)
+        //        return BadRequest(new { message = "Invalid job ID or resume ID." });
+
+        //    var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //    var applyDto = new ApplyForJobByResumeIdDto
+        //    {
+        //        JobId = jobId,
+        //        ResumeId = resumeId,
+        //        CoverLetter = CoverLetter
+        //    };
+
+        //    await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+        //    return Ok(new { message = "Application submitted successfully." });
+        //}
         [HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
-        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId , string CoverLetter )
+        public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId, string CoverLetter)
         {
             if (jobId <= 0 || resumeId <= 0)
                 return BadRequest(new { message = "Invalid job ID or resume ID." });
@@ -482,10 +382,16 @@ namespace JobConnect.Apis.Controllers
                 CoverLetter = CoverLetter
             };
 
-            await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
-            return Ok(new { message = "Application submitted successfully." });
+            try
+            {
+                await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+                return Ok(new { message = "Application submitted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-
         [HttpGet("GetProfileCompletion")]
         public async Task<IActionResult> GetProfileCompletion()
         {

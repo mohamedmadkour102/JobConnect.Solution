@@ -130,6 +130,8 @@ namespace JobConnect.Repository.Data
         public DbSet<JobSeekerCompanyWorkedAt> JobSeekerCompanyWorkedAt { get; set; }
         public DbSet<JobSeekerSkill> JobSeekerSkills { get; set; }
         public DbSet<JobSeekerWorkedAs> JobSeekerWorkedAs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<DeviceToken> DeviceTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -223,7 +225,15 @@ namespace JobConnect.Repository.Data
                 .WithMany(js => js.WorkedAs)
                 .HasForeignKey(jw => jw.JobSeekerId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId);
 
+            modelBuilder.Entity<DeviceToken>()
+                .HasOne(dt => dt.User)
+                .WithMany()
+                .HasForeignKey(dt => dt.UserId);
 
             modelBuilder.Entity<Employer>(e =>
             {
