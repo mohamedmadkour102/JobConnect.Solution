@@ -158,7 +158,6 @@ namespace JobConnect.Apis.Controllers
                     .Include(j => j.Employer)
                     .AsQueryable();
 
-                // Apply filters
                 if (filters != null && filters.Any())
                 {
                     foreach (var filter in filters)
@@ -166,7 +165,7 @@ namespace JobConnect.Apis.Controllers
                         var key = filter.Key.ToLower();
                         var value = filter.Value?.Trim();
 
-                        if (string.IsNullOrWhiteSpace(value) || value.ToLower() == "all")
+                        if (string.IsNullOrWhiteSpace(value) || value.ToLower() == "")
                             continue;
 
                         switch (key)
@@ -175,22 +174,6 @@ namespace JobConnect.Apis.Controllers
                             case "title":
                                 query = query.Where(j => j.Title.ToLower().Contains(value.ToLower()) ||
                                                          j.Location.ToLower().Contains(value.ToLower()));
-                                break;
-
-                            case "experience":
-                                if (string.IsNullOrEmpty(value) || value == "All")
-                                    break;
-
-                                if (value.EndsWith("+"))
-                                {
-                                    var min = int.Parse(value.TrimEnd('+'));
-                                    query = query.Where(j => int.Parse(j.Experience) >= min);
-                                }
-                                else
-                                {
-                                    var range = value.Split('-').Select(int.Parse).ToArray();
-                                    query = query.Where(j => int.Parse(j.Experience) >= range[0] && int.Parse(j.Experience) <= range[1]);
-                                }
                                 break;
 
                             case "minsalary":
@@ -226,17 +209,41 @@ namespace JobConnect.Apis.Controllers
                     }
                 }
 
-                // Count before pagination
-                var totalCount = await query.CountAsync();
+                var jobs = await query.ToListAsync();
 
-                // Get paginated result into memory first
-                var jobs = await query
+                // Now apply experience filter in-memory
+                if (filters != null && filters.TryGetValue("experience", out var expFilterValue))
+                {
+                    expFilterValue = expFilterValue?.Trim();
+                    if (!string.IsNullOrWhiteSpace(expFilterValue) && expFilterValue.ToLower() != "all")
+                    {
+                        jobs = jobs.Where(j =>
+                        {
+                            if (!int.TryParse(j.Experience, out var exp))
+                                return false;
+
+                            return expFilterValue switch
+                            {
+                                "0" => exp == 0,
+                                "0-2" => exp >= 0 && exp <= 2,
+                                "2-5" => exp >= 2 && exp <= 5,
+                                "5-8" => exp >= 5 && exp <= 8,
+                                "8+" => exp >= 8,
+                                _ => true
+                            };
+                        }).ToList();
+                    }
+                }
+
+                var totalCount = jobs.Count;
+
+                var pagedJobs = jobs
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
-                    .ToListAsync();
+                    .ToList();
 
-                // Now it's safe to use GetTimeAgo and other C# logic
-                var result = jobs.Select(j => new
+
+                var result = pagedJobs.Select(j => new
                 {
                     j.Id,
                     j.Title,
@@ -266,15 +273,18 @@ namespace JobConnect.Apis.Controllers
                     }
                 }).ToList();
 
+                var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
                 _logger.LogInformation("Successfully fetched {Count} jobs (Page {PageNumber} with size {PageSize})", result.Count, pageNumber, pageSize);
 
                 return Ok(new
                 {
-                    Message = result.Any() ? "Jobs retrieved successfully." : "No jobs found with the applied filters.",
-                    TotalCount = totalCount,
-                    PageNumber = pageNumber,
-                    PageSize = pageSize,
-                    Data = result
+                    message = result.Any() ? "Jobs retrieved successfully." : "No jobs found with the applied filters.",
+                    totalCount = totalCount,
+                    totalPages = totalPages,
+                    pageNumber = pageNumber,
+                    pageSize = pageSize,
+                    data = result
                 });
             }
             catch (Exception ex)
@@ -283,6 +293,7 @@ namespace JobConnect.Apis.Controllers
                 return StatusCode(500, new { Message = "An error occurred while fetching jobs." });
             }
         }
+
         [HttpGet("GetJobsByTags/{tag}/{tagId}")]
         public async Task<IActionResult> GetJobsByTagAndId(string tag, int tagId)
         {
