@@ -1,5 +1,4 @@
-﻿
-using JobConnect.Apis.DTO_s.SeekerDto;
+﻿using JobConnect.Apis.DTO_s.SeekerDto;
 using JobConnect.Apis.IRepository;
 using JobConnect.Apis.IService;
 using JobConnect.Core.Models;
@@ -9,6 +8,8 @@ using JobDto = JobConnect.Apis.DTO_s.SeekerDto.JobDto;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using JobConnect.Core.IService;
 
 namespace JobConnect.Apis.Services
 {
@@ -17,12 +18,18 @@ namespace JobConnect.Apis.Services
         private readonly IJobSeekerRepository _jobSeekerRepository;
         private readonly IWebHostEnvironment _environment;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
 
-        public JobSeekerService(IJobSeekerRepository jobSeekerRepository, IWebHostEnvironment environment, ICloudinaryService cloudinaryService)
+        public JobSeekerService(
+            IJobSeekerRepository jobSeekerRepository, 
+            IWebHostEnvironment environment, 
+            ICloudinaryService cloudinaryService,
+            INotificationService notificationService)
         {
             _jobSeekerRepository = jobSeekerRepository;
             _environment = environment;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
         }
 
         public async Task<JobSeeker> GetJobSeekerByIdAsync(string jobSeekerId)
@@ -183,6 +190,10 @@ namespace JobConnect.Apis.Services
             if (jobSeeker == null)
                 throw new Exception("JobSeeker not found.");
 
+            var job = await _jobSeekerRepository.GetJobByIdAsync(applyDto.JobId);
+            if (job == null)
+                throw new Exception("Job not found.");
+
             if (!string.IsNullOrEmpty(applyDto.SelectedResumePath))
             {
                 var selectedResume = jobSeeker.Resumes.FirstOrDefault(r => r.ResumePath == applyDto.SelectedResumePath);
@@ -198,19 +209,29 @@ namespace JobConnect.Apis.Services
                 var newResume = new JobSeekerResume
                 {
                     JobSeekerId = jobSeekerId,
-                    ResumePath = resumePath,
-                    ResumeName = applyDto.Resume.FileName,
-                    UploadDate = DateTime.UtcNow
+                    ResumePath = resumePath
                 };
+
                 jobSeeker.Resumes.Add(newResume);
-                await _jobSeekerRepository.UpdateJobSeekerAsync(jobSeeker);
             }
             else
             {
-                throw new Exception("You must either select an existing resume or upload a new one.");
+                throw new Exception("No resume provided.");
             }
 
+            
             await _jobSeekerRepository.ApplyForJobAsync(jobSeekerId, applyDto.JobId, applyDto.CoverLetter, resumePath);
+            await _jobSeekerRepository.SaveChangesAsync();
+
+           
+            await _notificationService.SendNotificationToUserAsync(jobSeekerId, new Notification
+            {
+                Title = "تم تقديم طلبك بنجاح",
+                Message = $"تم تقديم طلبك للوظيفة {job.Title} بنجاح",
+                Type = NotificationType.ApplicationStatus,
+                DataJson = JsonSerializer.Serialize(new { jobId = job.Id }),
+                RedirectUrl = $"/jobs/{job.Id}"
+            });
         }
 
 
@@ -316,19 +337,6 @@ namespace JobConnect.Apis.Services
 
             return (jobDtos, totalCount);
         }
-        public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
-        {
-            var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
-            if (jobSeeker == null)
-                throw new Exception("JobSeeker not found.");
-
-            var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == applyDto.ResumeId);
-            if (resume == null)
-                throw new Exception("Selected resume not found in your profile.");
-
-            await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
-        }
-
         //public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
         //{
         //    var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
@@ -339,27 +347,37 @@ namespace JobConnect.Apis.Services
         //    if (resume == null)
         //        throw new Exception("Selected resume not found in your profile.");
 
-        //    // ✅ التحقق من التقديم المكرر بناءً على JobId و JobSeekerId و Resume (كـ string path)
-        //    var alreadyApplied = await _context.Applications.AnyAsync(app =>
-        //        app.JobSeekerId == jobSeekerId &&
-        //        app.JobId == applyDto.JobId &&
-        //        app.Resume == resume.Path); // Assuming resume.Path is the path used in Application.Resume
+        //    await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
 
-        //    if (alreadyApplied)
-        //        throw new Exception("You have already applied to this job using this resume.");
-
-        //    // ✅ تقديم الطلب
-        //    var application = new Application
-        //    {
-        //        JobId = applyDto.JobId,
-        //        JobSeekerId = jobSeekerId,
-        //        CoverLetter = applyDto.CoverLetter,
-        //        Resume = resume// Store resume path
-        //    };
-
-        //    _context.Applications.Add(application);
-        //    await _context.SaveChangesAsync();
         //}
+        public async Task ApplyForJobByResumeIdAsync(string jobSeekerId, ApplyForJobByResumeIdDto applyDto)
+        {
+            var jobSeeker = await _jobSeekerRepository.GetJobSeekerByIdAsync(jobSeekerId);
+            if (jobSeeker == null)
+                throw new Exception("JobSeeker not found.");
+
+            var resume = jobSeeker.Resumes.FirstOrDefault(r => r.Id == applyDto.ResumeId);
+            if (resume == null)
+                throw new Exception("Selected resume not found in your profile.");
+
+            var job = await _jobSeekerRepository.GetJobByIdAsync(applyDto.JobId);
+            if (job == null)
+                throw new Exception("Job not found.");
+
+            await _jobSeekerRepository.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
+
+            await _jobSeekerRepository.SaveChangesAsync();
+
+            await _notificationService.SendNotificationToUserAsync(jobSeekerId, new Notification
+            {
+                Title = "تم تقديم طلبك بنجاح",
+                Message = $"تم تقديم طلبك للوظيفة {job.Title} بنجاح",
+                Type = NotificationType.ApplicationStatus,
+                DataJson = JsonSerializer.Serialize(new { jobId = job.Id }),
+                RedirectUrl = $"/jobs/{job.Id}"
+            });
+        }
+ 
 
 
 

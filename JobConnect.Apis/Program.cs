@@ -18,6 +18,7 @@ using JobConnect.Apis.Services;
 using JobConnect.Apis.Helpers;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using JobConnect.Core.IService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +95,9 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<JobMatchingService>();
+builder.Services.AddHttpClient();
+
 
 builder.Services.AddIdentity<User, IdentityRole>()
         .AddEntityFrameworkStores<AppDbContext>()

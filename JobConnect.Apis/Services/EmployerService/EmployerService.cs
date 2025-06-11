@@ -8,7 +8,8 @@ using JobConnect.Apis.DTO_s.SeekerDto;
 using JobDto = JobConnect.Apis.DTO_s.EmployerDto.JobDto;
 using Microsoft.EntityFrameworkCore;
 using JobConnect.Repository.Data;
-
+using System.Text.Json;
+using JobConnect.Core.IService;
 
 namespace JobConnect.Apis.Services
 {
@@ -19,15 +20,22 @@ namespace JobConnect.Apis.Services
         private readonly IWebHostEnvironment _environment;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly AppDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public EmployerService(IEmployerRepository employerRepository, UserManager<User> userManager, IWebHostEnvironment environment,
-            ICloudinaryService cloudinaryService ,AppDbContext context )
+        public EmployerService(
+            IEmployerRepository employerRepository, 
+            UserManager<User> userManager, 
+            IWebHostEnvironment environment,
+            ICloudinaryService cloudinaryService,
+            AppDbContext context,
+            INotificationService notificationService)
         {
             _employerRepository = employerRepository;
             _userManager = userManager;
             _environment = environment;
             _cloudinaryService = cloudinaryService;
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<Employer> GetEmployerByIdAsync(string employerId)
@@ -483,20 +491,56 @@ namespace JobConnect.Apis.Services
         }
         public async Task<bool> HireApplicantAsync(string employerId, int jobId, string jobSeekerId)
         {
-            var job = await _context.Jobs
-                .FirstOrDefaultAsync(j => j.Id == jobId && j.EmployerId == employerId);
-            if (job == null) return false;
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId);
 
-            return await _employerRepository.HireApplicantAsync(jobId, jobSeekerId);
+            if (application == null)
+                return false;
+
+            application.Status = "Hired";
+            await _context.SaveChangesAsync();
+
+            // إرسال إشعار للمستخدم
+            await _notificationService.SendNotificationToUserAsync(
+                jobSeekerId,
+                new Notification
+                {
+                    Title = "تم قبول طلبك!",
+                    Message = $"تم قبول طلبك للوظيفة {application.Job.Title}",
+                    Type = NotificationType.ApplicationStatus,
+                    DataJson = JsonSerializer.Serialize(new { applicationId = application.Id }),
+                    RedirectUrl = $"/applications/{application.Id}"
+                }
+            );
+
+            return true;
         }
 
         public async Task<bool> RejectApplicantAsync(string employerId, int jobId, string jobSeekerId)
         {
-            var job = await _context.Jobs
-                .FirstOrDefaultAsync(j => j.Id == jobId && j.EmployerId == employerId);
-            if (job == null) return false;
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.JobId == jobId && a.JobSeekerId == jobSeekerId);
 
-            return await _employerRepository.RejectApplicantAsync(jobId, jobSeekerId);
+            if (application == null)
+                return false;
+
+            application.Status = "Rejected";
+            await _context.SaveChangesAsync();
+
+            // إرسال إشعار للمستخدم
+            await _notificationService.SendNotificationToUserAsync(
+                jobSeekerId,
+                new Notification
+                {
+                    Title = "تم رفض طلبك",
+                    Message = $"تم رفض طلبك للوظيفة {application.Job.Title}",
+                    Type = NotificationType.ApplicationStatus,
+                    DataJson = JsonSerializer.Serialize(new { applicationId = application.Id }),
+                    RedirectUrl = $"/applications/{application.Id}"
+                }
+            );
+
+            return true;
         }
         private string GetTimeAgo(DateTime date)
         {

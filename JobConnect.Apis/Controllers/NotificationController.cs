@@ -1,15 +1,15 @@
-﻿using JobConnect.Apis.DTO_s;
-using JobConnect.Apis.IService;
+using JobConnect.Apis.DTO_s;
+using JobConnect.Core.IService;
 using JobConnect.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace JobConnect.Apis.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
-    [Authorize] // Requires JWT token
+    [Route("api/[controller]")]
     public class NotificationController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -20,27 +20,34 @@ namespace JobConnect.Apis.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetUserNotifications()
+        public async Task<ActionResult<List<Notification>>> GetNotifications()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
 
-            var notifications = await _notificationService.GetUserNotificationsAsync(userId);
-            return Ok(new { message = "Notifications retrieved successfully.", data = notifications });
+            var notifications = await _notificationService.GetAllForUserAsync(userId);
+            return Ok(notifications);
         }
 
-        [HttpPost("device-token")]
-        public async Task<IActionResult> SubscribeDeviceToken([FromBody] SubscribeDeviceTokenRequest request)
+        [HttpPost("mark-read/{notificationId}")]
+        public async Task<IActionResult> MarkAsRead(string notificationId)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { message = "Invalid token." });
+            await _notificationService.MarkAsReadAsync(notificationId);
+            return Ok();
+        }
 
-            await _notificationService.SubscribeDeviceTokenAsync(userId, request.PushToken, request.Platform);
-            return Ok(new { message = "Device token subscribed successfully." });
+        [HttpPost("push-token")]
+        public async Task<IActionResult> RegisterPushToken([FromBody] PushTokenRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            await _notificationService.RegisterExpoTokenAsync(userId, request.ExpoPushToken);
+            return Ok();
         }
     }
 
 
-}
+} 

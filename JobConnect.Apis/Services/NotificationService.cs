@@ -1,83 +1,108 @@
-﻿using FirebaseAdmin.Messaging;
-using JobConnect.Apis.IService;
+using JobConnect.Core.IService;
 using JobConnect.Core.Models;
 using JobConnect.Repository.Data;
 using Microsoft.EntityFrameworkCore;
-using Notification = JobConnect.Core.Models.Notification;
+using System.Text;
+using System.Text.Json;
 
-namespace JobConnect.Apis.Services
+namespace JobConnect.Core.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly AppDbContext _dbContext;
+        private readonly AppDbContext _context;
+        private readonly HttpClient _httpClient;
 
-        public NotificationService(AppDbContext dbContext)
+        public NotificationService(AppDbContext context, HttpClient httpClient)
         {
-            _dbContext = dbContext;
+            _context = context;
+            _httpClient = httpClient;
         }
 
-        public async Task SendNotificationAsync(string userId, Notification notification)
+        public async Task SendNotificationToUserAsync(string userId, Notification notification)
         {
-            // Save notification to database
+            // تعيين معرف المستخدم
             notification.UserId = userId;
-            _dbContext.Notifications.Add(notification);
-            await _dbContext.SaveChangesAsync();
 
-            // Get user device tokens
-            var deviceTokens = await _dbContext.DeviceTokens
-                .Where(dt => dt.UserId == userId)
-                .Select(dt => dt.PushToken)
-                .ToListAsync();
+            // إضافة الإشعار إلى قاعدة البيانات
+            await _context.Notifications.AddAsync(notification);
+            await _context.SaveChangesAsync();
 
-            if (!deviceTokens.Any())
-                return;
+            // جلب توكن Expo للمستخدم
+            var deviceToken = await _context.DeviceTokens
+                .FirstOrDefaultAsync(dt => dt.UserId == userId);
 
-            // Send push notification via FCM
-            var message = new MulticastMessage
+            if (deviceToken != null)
             {
-                Tokens = deviceTokens,
-                Notification = new FirebaseAdmin.Messaging.Notification
-                {
-                    Title = notification.Title,
-                    Body = notification.Message
-                },
-                Data = new Dictionary<string, string>
-                {
-                    { "redirect", notification.Redirect }
-                }
-            };
-
-            await FirebaseMessaging.DefaultInstance.SendMulticastAsync(message);
+                // إرسال الإشعار المباشر
+                await SendPushNotificationAsync(
+                    deviceToken.PushToken,
+                    notification.Title,
+                    notification.Message
+                );
+            }
         }
 
-        public async Task<List<Notification>> GetUserNotificationsAsync(string userId)
+        public async Task MarkAsReadAsync(string notificationId)
         {
-            return await _dbContext.Notifications
+            var notification = await _context.Notifications.FindAsync(notificationId);
+            if (notification != null)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<Notification>> GetAllForUserAsync(string userId)
+        {
+            return await _context.Notifications
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
 
-        public async Task SubscribeDeviceTokenAsync(string userId, string pushToken, string platform)
+        public async Task RegisterExpoTokenAsync(string userId, string expoToken)
         {
-            var existingToken = await _dbContext.DeviceTokens
-                .FirstOrDefaultAsync(dt => dt.UserId == userId && dt.Platform == platform);
+            var existingToken = await _context.DeviceTokens
+                .FirstOrDefaultAsync(dt => dt.UserId == userId);
 
             if (existingToken != null)
             {
-                existingToken.PushToken = pushToken;
+                existingToken.PushToken = expoToken;
             }
             else
             {
-                _dbContext.DeviceTokens.Add(new DeviceToken
+                await _context.DeviceTokens.AddAsync(new DeviceToken
                 {
                     UserId = userId,
-                    PushToken = pushToken,
-                    Platform = platform
+                    PushToken = expoToken,
+                    Platform = "android" // يمكن تحديثه لاحقاً بناءً على نوع الجهاز
                 });
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SendPushNotificationAsync(string expoToken, string title, string body)
+        {
+            var message = new
+            {
+                to = expoToken,
+                sound = "default",
+                title = title,
+                body = body,
+                data = new { }
+            };
+
+            var content = new StringContent(
+                JsonSerializer.Serialize(message),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            await _httpClient.PostAsync(
+                "https://exp.host/--/api/v2/push/send",
+                content
+            );
         }
     }
-}
+} 

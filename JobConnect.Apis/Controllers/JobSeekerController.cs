@@ -351,23 +351,7 @@ namespace JobConnect.Apis.Controllers
             await _jobSeekerService.DeleteJobSeekerAsync(jobSeekerId);
             return Ok(new { message = "Profile deleted successfully." });
         }
-        //[HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
-        //public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId , string CoverLetter )
-        //{
-        //    if (jobId <= 0 || resumeId <= 0)
-        //        return BadRequest(new { message = "Invalid job ID or resume ID." });
 
-        //    var jobSeekerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var applyDto = new ApplyForJobByResumeIdDto
-        //    {
-        //        JobId = jobId,
-        //        ResumeId = resumeId,
-        //        CoverLetter = CoverLetter
-        //    };
-
-        //    await _jobSeekerService.ApplyForJobByResumeIdAsync(jobSeekerId, applyDto);
-        //    return Ok(new { message = "Application submitted successfully." });
-        //}
         [HttpPost("ApplyForJobByResumeId/{jobId}/{resumeId}")]
         public async Task<IActionResult> ApplyForJobByResumeId(int jobId, int resumeId, string CoverLetter)
         {
