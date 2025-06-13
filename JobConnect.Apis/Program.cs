@@ -21,6 +21,10 @@ using Google.Apis.Auth.OAuth2;
 using JobConnect.Core.IService;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5031); // instead of localhost only
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -189,8 +193,8 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-   // c.RoutePrefix = string.Empty;
-    c.RoutePrefix = "Swagger";
+   c.RoutePrefix = string.Empty;
+    // c.RoutePrefix = "Swagger";
 
 });
 

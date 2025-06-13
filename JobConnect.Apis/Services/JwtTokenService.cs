@@ -280,60 +280,46 @@ namespace JobConnect.Apis.Services
 
         public async Task<(string AccessToken, string RefreshToken)> RefreshTokenAsync(string accessToken, string refreshToken)
         {
-            // Step 1: Validate the Refresh Token first
+            // Step 1: Validate Refresh Token
             var refreshPrincipal = GetPrincipalFromToken(refreshToken);
             if (refreshPrincipal == null)
-            {
-                return (null, null); // Invalid Refresh Token
-            }
+                return (null, null); // Invalid refresh token
 
-            // Step 2: Check if Refresh Token is expired
-            var refreshExpiryDateUnix = long.Parse(refreshPrincipal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value ?? "0");
-            var refreshExpiryDate = DateTimeOffset.FromUnixTimeSeconds(refreshExpiryDateUnix).UtcDateTime;
-            if (refreshExpiryDate < DateTime.UtcNow)
-            {
-                return (null, null); // Expired Refresh Token
-            }
+            var refreshExpiry = GetExpiryFromToken(refreshPrincipal);
+            if (refreshExpiry < DateTime.UtcNow)
+                return (null, null); // Expired refresh token
 
-            // Step 3: Get the user from the Refresh Token
+            // Step 2: Get User from Refresh Token
             var userId = refreshPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
-            {
-                return (null, null); // Invalid user ID in Refresh Token
-            }
+                return (null, null); // No user in token
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-            {
                 return (null, null); // User not found
-            }
 
-            // Step 4: Verify the stored Refresh Token
+            // Step 3: Validate stored Refresh Token
             var storedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
             if (storedRefreshToken != refreshToken)
-            {
-                return (null, null); // Refresh Token doesn't match
-            }
+                return (null, null); // Mismatch in stored refresh token
 
-            // Step 5: Validate the Access Token (to determine if we need new tokens)
+            // Step 4: Check access token expiry (but do NOT validate its signature)
             var accessPrincipal = GetPrincipalFromToken(accessToken);
-            if (accessPrincipal != null)
+            var accessExpiry = GetExpiryFromToken(accessPrincipal);
+            var accessTokenValid = accessExpiry >= DateTime.UtcNow;
+
+            if (accessTokenValid)
             {
-                var accessExpiryDateUnix = long.Parse(accessPrincipal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value ?? "0");
-                var accessExpiryDate = DateTimeOffset.FromUnixTimeSeconds(accessExpiryDateUnix).UtcDateTime;
-
-                // If Access Token is not expired, return the same tokens
-                if (accessExpiryDate >= DateTime.UtcNow)
-                {
-                    return (accessToken, refreshToken);
-                }
+                // Optional: rotate refresh token anyway for added security
+                await _userManager.RemoveAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
+                return await GenerateTokensAsync(user); // 🔁 Reissue tokens (or return same if you prefer)
             }
-            // If Access Token is expired or invalid, proceed to generate new tokens
 
-            // Step 6: Invalidate the old Refresh Token and generate new tokens
+            // Step 5: Access token is expired, refresh token is valid — reissue
             await _userManager.RemoveAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
             return await GenerateTokensAsync(user);
         }
+
 
         public async Task<bool> LogoutAsync(string refreshToken)
         {
@@ -390,5 +376,11 @@ namespace JobConnect.Apis.Services
                 return null;
             }
         }
+        private static DateTime GetExpiryFromToken(ClaimsPrincipal principal)
+        {
+            var exp = long.Parse(principal.FindFirst(JwtRegisteredClaimNames.Exp)?.Value ?? "0");
+            return DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime;
+        }
+
     }
 }

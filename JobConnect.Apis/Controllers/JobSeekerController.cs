@@ -19,7 +19,7 @@ namespace JobConnect.Apis.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly AppDbContext _context;
 
-        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment , AppDbContext context)
+        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment, AppDbContext context)
         {
             _jobSeekerService = jobSeekerService;
             _environment = environment;
@@ -215,7 +215,7 @@ namespace JobConnect.Apis.Controllers
                 Skills = jobSeeker.Skills.Select(s => new SkillDto
                 {
                     SkillName = s.SkillName,
-                   // ProficiencyLevel = s.ProficiencyLevel
+                    // ProficiencyLevel = s.ProficiencyLevel
                 }).ToList(),
                 WorkedAs = jobSeeker.WorkedAs.Select(w => new WorkedAsDto
                 {
@@ -240,43 +240,38 @@ namespace JobConnect.Apis.Controllers
             if (jobSeeker == null)
                 return NotFound(new { message = "JobSeeker not found." });
 
-            // Update scalar properties if provided
-            if (!string.IsNullOrEmpty(updateDto.Address)) jobSeeker.Address = updateDto.Address;
+            // Update scalar properties if explicitly provided (even empty strings)
+            if (updateDto.Address != null) jobSeeker.Address = updateDto.Address;
             if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
-            if (!string.IsNullOrEmpty(updateDto.Degree)) jobSeeker.Degree = updateDto.Degree;
-            if (!string.IsNullOrEmpty(updateDto.CurrentOrDesiredJob)) jobSeeker.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
-            if (!string.IsNullOrEmpty(updateDto.Bio)) jobSeeker.Bio = updateDto.Bio;
-            if (!string.IsNullOrEmpty(updateDto.CoverLetter)) jobSeeker.CoverLetter = updateDto.CoverLetter;
+            if (updateDto.Degree != null) jobSeeker.Degree = updateDto.Degree;
+            if (updateDto.CurrentOrDesiredJob != null) jobSeeker.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
+            if (updateDto.Bio != null) jobSeeker.Bio = updateDto.Bio;
+            if (updateDto.CoverLetter != null) jobSeeker.CoverLetter = updateDto.CoverLetter;
             if (updateDto.DateOfBirth.HasValue) jobSeeker.DateOfBirth = updateDto.DateOfBirth;
-            if (!string.IsNullOrEmpty(updateDto.Nationality)) jobSeeker.Nationality = updateDto.Nationality;
-            if (!string.IsNullOrEmpty(updateDto.MaritalStatus)) jobSeeker.MaritalStatus = updateDto.MaritalStatus;
-            if (!string.IsNullOrEmpty(updateDto.Gender)) jobSeeker.Gender = updateDto.Gender;
-            if (!string.IsNullOrEmpty(updateDto.Education)) jobSeeker.Education = updateDto.Education;
-            if (!string.IsNullOrEmpty(updateDto.Portfolio)) jobSeeker.Portfolio = updateDto.Portfolio;
-            if (!string.IsNullOrEmpty(updateDto.FacebookLink)) jobSeeker.FacebookLink = updateDto.FacebookLink;
-            if (!string.IsNullOrEmpty(updateDto.TwitterLink)) jobSeeker.TwitterLink = updateDto.TwitterLink;
-            if (!string.IsNullOrEmpty(updateDto.InstagramLink)) jobSeeker.InstagramLink = updateDto.InstagramLink;
-            if (!string.IsNullOrEmpty(updateDto.LinkedInLink)) jobSeeker.LinkedInLink = updateDto.LinkedInLink;
-            if (!string.IsNullOrEmpty(updateDto.CollegeName)) jobSeeker.CollegeName = updateDto.CollegeName;
-            if (!string.IsNullOrEmpty(updateDto.University)) jobSeeker.University = updateDto.University;
+            if (updateDto.Nationality != null) jobSeeker.Nationality = updateDto.Nationality;
+            if (updateDto.MaritalStatus != null) jobSeeker.MaritalStatus = updateDto.MaritalStatus;
+            if (updateDto.Gender != null) jobSeeker.Gender = updateDto.Gender;
+            if (updateDto.Education != null) jobSeeker.Education = updateDto.Education;
+            if (updateDto.Portfolio != null) jobSeeker.Portfolio = updateDto.Portfolio;
+            if (updateDto.FacebookLink != null) jobSeeker.FacebookLink = updateDto.FacebookLink;
+            if (updateDto.TwitterLink != null) jobSeeker.TwitterLink = updateDto.TwitterLink;
+            if (updateDto.InstagramLink != null) jobSeeker.InstagramLink = updateDto.InstagramLink;
+            if (updateDto.LinkedInLink != null) jobSeeker.LinkedInLink = updateDto.LinkedInLink;
+            if (updateDto.CollegeName != null) jobSeeker.CollegeName = updateDto.CollegeName;
+            if (updateDto.University != null) jobSeeker.University = updateDto.University;
 
-            // Sync Certifications
+            // Sync Certifications if explicitly provided
             if (updateDto.Certifications != null)
             {
-                // Remove all existing certifications
                 jobSeeker.Certifications.Clear();
 
-                // Add new certifications from DTO, skip empty or null names
                 foreach (var c in updateDto.Certifications)
                 {
-                    if (!string.IsNullOrEmpty(c.CertificationName)) // Skip empty certification names
+                    if (!string.IsNullOrEmpty(c.CertificationName))
                     {
                         jobSeeker.Certifications.Add(new JobSeekerCertification
                         {
                             CertificationName = c.CertificationName,
-                            //IssuingOrganization = c.IssuingOrganization,
-                            //IssueDate = c.IssueDate,
-                            //ExpiryDate = c.ExpiryDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -287,6 +282,7 @@ namespace JobConnect.Apis.Controllers
             if (updateDto.CompanyWorkedAt != null)
             {
                 jobSeeker.CompanyWorkedAt.Clear();
+
                 foreach (var c in updateDto.CompanyWorkedAt)
                 {
                     if (!string.IsNullOrEmpty(c.CompanyName))
@@ -294,8 +290,6 @@ namespace JobConnect.Apis.Controllers
                         jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
                         {
                             CompanyName = c.CompanyName,
-                            //StartDate = c.StartDate,
-                            //EndDate = c.EndDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -306,6 +300,7 @@ namespace JobConnect.Apis.Controllers
             if (updateDto.Skills != null)
             {
                 jobSeeker.Skills.Clear();
+
                 foreach (var s in updateDto.Skills)
                 {
                     if (!string.IsNullOrEmpty(s.SkillName))
@@ -313,7 +308,6 @@ namespace JobConnect.Apis.Controllers
                         jobSeeker.Skills.Add(new JobSeekerSkill
                         {
                             SkillName = s.SkillName,
-                            //ProficiencyLevel = s.ProficiencyLevel,
                             JobSeekerId = jobSeekerId
                         });
                     }
@@ -324,6 +318,7 @@ namespace JobConnect.Apis.Controllers
             if (updateDto.WorkedAs != null)
             {
                 jobSeeker.WorkedAs.Clear();
+
                 foreach (var w in updateDto.WorkedAs)
                 {
                     if (!string.IsNullOrEmpty(w.JobTitle))
@@ -331,8 +326,6 @@ namespace JobConnect.Apis.Controllers
                         jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
                         {
                             JobTitle = w.JobTitle,
-                            //StartDate = w.StartDate,
-                            //EndDate = w.EndDate,
                             JobSeekerId = jobSeekerId
                         });
                     }
