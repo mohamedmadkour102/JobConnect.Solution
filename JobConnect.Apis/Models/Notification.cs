@@ -23,6 +23,13 @@ namespace JobConnect.Core.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string UserId { get; set; }
         public string DataJson { get; set; }
+        
+        [NotMapped]
+        public object Data 
+        {
+            get => JsonSerializer.Deserialize<object>(DataJson ?? "{}");
+            set => DataJson = JsonSerializer.Serialize(value);
+        }
 
         [ForeignKey("UserId")]
         public User User { get; set; }
