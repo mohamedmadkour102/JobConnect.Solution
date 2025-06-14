@@ -325,26 +325,26 @@ namespace JobConnect.Apis.Services
         {
             var refreshPrincipal = GetPrincipalFromToken(refreshToken);
             if (refreshPrincipal == null)
-            {
-                return false; // Invalid Refresh Token
-            }
+                return false;
+
+            // ❗️ Manually check expiration
+            var refreshExpiry = GetExpiryFromToken(refreshPrincipal);
+            if (refreshExpiry < DateTime.UtcNow)
+                return false; // Expired refresh token
 
             var userId = refreshPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
-            {
-                return false; // User not found
-            }
+                return false;
 
             var storedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
             if (storedRefreshToken != refreshToken)
-            {
-                return false; // Refresh Token doesn't match
-            }
+                return false;
 
             await _userManager.RemoveAuthenticationTokenAsync(user, "JobConnect", "RefreshToken");
             return true;
         }
+
 
         private ClaimsPrincipal GetPrincipalFromToken(string token)
         {
