@@ -39,7 +39,7 @@ namespace JobConnect.Core.Services
             }
         }
 
-    public async Task MarkAsReadAsync(string notificationId)
+        public async Task MarkAsReadAsync(string notificationId)
         {
             var notification = await _context.Notifications.FindAsync(notificationId);
             if (notification != null)
@@ -87,7 +87,7 @@ namespace JobConnect.Core.Services
                 sound = "default",
                 title,
                 body,
-                data = new 
+                data = new
                 {
                     type = type.ToString(),
                     redirectUrl = GetRedirectUrl(type, data),
@@ -109,66 +109,133 @@ namespace JobConnect.Core.Services
 
         private string GetRedirectUrl(NotificationType type, object data)
         {
-            return type switch
+            if (data is JsonElement jsonElement)
             {
-                NotificationType.JobMatch => $"jobs/{((dynamic)data).JobId}",
-                NotificationType.ApplicationStatus => $"applications/{((dynamic)data).ApplicationId}",
-                NotificationType.Message => $"messages/{((dynamic)data).MessageId}",
-                NotificationType.Recommendation => "recommendations",
-                _ => ""
-            };
+                switch (type)
+                {
+                    case NotificationType.ApplicationStatus:
+                        if (jsonElement.TryGetProperty("ApplicationId", out var applicationId))
+                        {
+                            return $"applied/{applicationId.GetInt32()}";
+                        }
+                        break;
+
+                    case NotificationType.Message:
+                        if (jsonElement.TryGetProperty("MessageId", out var messageId))
+                        {
+                            return $"notifications?messageId={messageId.GetString()}";
+                        }
+                        break;
+
+                    case NotificationType.Recommendation:
+                        return "jobs";
+
+                    case NotificationType.CompleteProfile:
+                        return "profile";
+                }
+
+                return string.Empty;
+            }
+
+            // Fallback for when data is not JsonElement (like anonymous object in memory)
+            switch (type)
+            {
+                case NotificationType.ApplicationStatus:
+                    return $"applied/{((dynamic)data).ApplicationId}";
+
+                case NotificationType.Message:
+                    return $"notifications?messageId={((dynamic)data).MessageId}";
+
+                case NotificationType.Recommendation:
+                    return "jobs";
+
+                case NotificationType.CompleteProfile:
+                    return "profile";
+
+                default:
+                    return string.Empty;
+            }
         }
 
-        public async Task SendJobMatchNotification(string userId, string jobId, string jobTitle)
+
+
+        public async Task SendCompleteProfileReminderAsync(string userId)
         {
-            var notification = new Notification
-            {
-                Type = NotificationType.JobMatch,
-                Title = "New Job Match",
-                Message = $"You've been matched with job: {jobTitle}",
-                Data = new { JobId = jobId }
-            };
-            
+            var data = new { };
+            var notification = BuildNotification(userId,
+                "Complete Your Profile",
+                "We need more details to match you with jobs.",
+                NotificationType.CompleteProfile,
+                data);
+
             await SendNotificationToUserAsync(userId, notification);
         }
 
-        public async Task SendApplicationStatusNotification(string userId, string applicationId, string status)
+
+        public async Task SendApplicationStatusNotification(string userId, int applicationId, string status)
         {
-            var notification = new Notification
-            {
-                Type = NotificationType.ApplicationStatus,
-                Title = "Application Update",
-                Message = $"Your application status has changed to: {status}",
-                Data = new { ApplicationId = applicationId }
-            };
-            
+            var application = await _context.Applications
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+            if (application == null || application.Job == null)
+                return;
+
+            var jobTitle = application.Job.Title;
+
+            var data = new { ApplicationId = applicationId };
+            var notification = BuildNotification(userId,
+                "Application Update",
+                $"Your application for {jobTitle} has been {status.ToLower()}.",
+                NotificationType.ApplicationStatus,
+                data);
+
             await SendNotificationToUserAsync(userId, notification);
         }
+
+
 
         public async Task SendMessageNotification(string userId, string messageId, string senderName)
         {
-            var notification = new Notification
-            {
-                Type = NotificationType.Message,
-                Title = $"New message from {senderName}",
-                Message = "You have a new message",
-                Data = new { MessageId = messageId }
-            };
-            
+            var data = new { MessageId = messageId };
+            var notification = BuildNotification(userId,
+                $"New message from {senderName}",
+                "You have a new message",
+                NotificationType.Message,
+                data);
+
             await SendNotificationToUserAsync(userId, notification);
         }
 
+
         public async Task SendRecommendationNotification(string userId, string recommendationText)
         {
-            var notification = new Notification
-            {
-                Type = NotificationType.Recommendation,
-                Title = "New Recommendation",
-                Message = recommendationText,
-                Data = new { }
-            };
-            
+            var data = new { };
+            var notification = BuildNotification(userId,
+                "New Recommendation",
+                recommendationText,
+                NotificationType.Recommendation,
+                data);
+
             await SendNotificationToUserAsync(userId, notification);
         }
+
+        private Notification BuildNotification(string userId, string title, string message, NotificationType type, object data)
+        {
+            return new Notification
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserId = userId,
+                Title = title,
+                Message = message,
+                Type = type,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false,
+                RedirectUrl = GetRedirectUrl(type, data),
+                DataJson = System.Text.Json.JsonSerializer.Serialize(data),
+                Data = data // Store in memory only (not persisted directly)
+            };
+        }
+
     }
 }

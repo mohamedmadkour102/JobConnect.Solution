@@ -8,7 +8,8 @@ namespace JobConnect.Core.Models
         JobMatch,
         ApplicationStatus,
         Message,
-        Recommendation
+        Recommendation,
+        CompleteProfile
     }
 
     [Table("Notifications")]

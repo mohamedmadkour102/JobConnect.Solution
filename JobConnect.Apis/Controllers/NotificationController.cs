@@ -19,7 +19,8 @@ namespace JobConnect.Apis.Controllers
             _notificationService = notificationService;
         }
 
-        [HttpGet]
+
+        [HttpGet("user-notifications")]
         public async Task<ActionResult<List<Notification>>> GetNotifications()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

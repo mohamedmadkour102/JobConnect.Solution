@@ -23,8 +23,8 @@ namespace JobConnect.Apis.Services
         private readonly INotificationService _notificationService;
 
         public EmployerService(
-            IEmployerRepository employerRepository, 
-            UserManager<User> userManager, 
+            IEmployerRepository employerRepository,
+            UserManager<User> userManager,
             IWebHostEnvironment environment,
             ICloudinaryService cloudinaryService,
             AppDbContext context,
@@ -433,18 +433,18 @@ namespace JobConnect.Apis.Services
                 CompanyWorkedAt = jobSeeker.CompanyWorkedAt.Select(c => new CompanyWorkedAtDto
                 {
                     CompanyName = c.CompanyName,
-                 //   StartDate = c.StartDate,
-                   // EndDate = c.EndDate
+                    //   StartDate = c.StartDate,
+                    // EndDate = c.EndDate
                 }).ToList(),
                 Skills = jobSeeker.Skills.Select(s => new SkillDto
                 {
                     SkillName = s.SkillName,
-                  //  ProficiencyLevel = s.ProficiencyLevel
+                    //  ProficiencyLevel = s.ProficiencyLevel
                 }).ToList(),
                 WorkedAs = jobSeeker.WorkedAs.Select(w => new WorkedAsDto
                 {
                     JobTitle = w.JobTitle,
-                   // StartDate = w.StartDate,
+                    // StartDate = w.StartDate,
                     //EndDate = w.EndDate
                 }).ToList()
             };
@@ -463,7 +463,7 @@ namespace JobConnect.Apis.Services
                 UploadDate = r.UploadDate
             });
         }
-         public async Task<IEnumerable<JobApplicantWithResumeDto>> GetApplicantsWithResumeAsync(int jobId, string employerId)
+        public async Task<IEnumerable<JobApplicantWithResumeDto>> GetApplicantsWithResumeAsync(int jobId, string employerId)
         {
             // Verify the job exists and belongs to the employer
             var job = await _employerRepository.GetJobByIdAsync(jobId, employerId);
@@ -500,18 +500,7 @@ namespace JobConnect.Apis.Services
             application.Status = "Hired";
             await _context.SaveChangesAsync();
 
-            // إرسال إشعار للمستخدم
-            await _notificationService.SendNotificationToUserAsync(
-                jobSeekerId,
-                new Notification
-                {
-                    Title = "تم قبول طلبك!",
-                    Message = $"تم قبول طلبك للوظيفة {application.Job.Title}",
-                    Type = NotificationType.ApplicationStatus,
-                    DataJson = JsonSerializer.Serialize(new { applicationId = application.Id }),
-                    RedirectUrl = $"/applications/{application.Id}"
-                }
-            );
+            await _notificationService.SendApplicationStatusNotification(jobSeekerId, application.Id, "Accepted");
 
             return true;
         }
@@ -527,18 +516,8 @@ namespace JobConnect.Apis.Services
             application.Status = "Rejected";
             await _context.SaveChangesAsync();
 
-            // إرسال إشعار للمستخدم
-            await _notificationService.SendNotificationToUserAsync(
-                jobSeekerId,
-                new Notification
-                {
-                    Title = "تم رفض طلبك",
-                    Message = $"تم رفض طلبك للوظيفة {application.Job.Title}",
-                    Type = NotificationType.ApplicationStatus,
-                    DataJson = JsonSerializer.Serialize(new { applicationId = application.Id }),
-                    RedirectUrl = $"/applications/{application.Id}"
-                }
-            );
+            await _notificationService.SendApplicationStatusNotification(jobSeekerId, application.Id, "Rejected");
+
 
             return true;
         }
