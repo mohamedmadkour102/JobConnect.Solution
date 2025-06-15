@@ -20,29 +20,26 @@ namespace JobConnect.Core.Services
 
         public async Task SendNotificationToUserAsync(string userId, Notification notification)
         {
-            // تعيين معرف المستخدم
             notification.UserId = userId;
-
-            // إضافة الإشعار إلى قاعدة البيانات
             await _context.Notifications.AddAsync(notification);
             await _context.SaveChangesAsync();
 
-            // جلب توكن Expo للمستخدم
             var deviceToken = await _context.DeviceTokens
                 .FirstOrDefaultAsync(dt => dt.UserId == userId);
 
             if (deviceToken != null)
             {
-                // إرسال الإشعار المباشر
                 await SendPushNotificationAsync(
                     deviceToken.PushToken,
                     notification.Title,
-                    notification.Message
+                    notification.Message,
+                    notification.Type,
+                    notification.Data
                 );
             }
         }
 
-        public async Task MarkAsReadAsync(string notificationId)
+    public async Task MarkAsReadAsync(string notificationId)
         {
             var notification = await _context.Notifications.FindAsync(notificationId);
             if (notification != null)
@@ -82,15 +79,20 @@ namespace JobConnect.Core.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task SendPushNotificationAsync(string expoToken, string title, string body)
+        public async Task SendPushNotificationAsync(string expoToken, string title, string body, NotificationType type, object data = null)
         {
             var message = new
             {
                 to = expoToken,
                 sound = "default",
-                title = title,
-                body = body,
-                data = new { }
+                title,
+                body,
+                data = new 
+                {
+                    type = type.ToString(),
+                    redirectUrl = GetRedirectUrl(type, data),
+                    data
+                }
             };
 
             var content = new StringContent(
@@ -104,5 +106,69 @@ namespace JobConnect.Core.Services
                 content
             );
         }
+
+        private string GetRedirectUrl(NotificationType type, object data)
+        {
+            return type switch
+            {
+                NotificationType.JobMatch => $"jobs/{((dynamic)data).JobId}",
+                NotificationType.ApplicationStatus => $"applications/{((dynamic)data).ApplicationId}",
+                NotificationType.Message => $"messages/{((dynamic)data).MessageId}",
+                NotificationType.Recommendation => "recommendations",
+                _ => ""
+            };
+        }
+
+        public async Task SendJobMatchNotification(string userId, string jobId, string jobTitle)
+        {
+            var notification = new Notification
+            {
+                Type = NotificationType.JobMatch,
+                Title = "New Job Match",
+                Message = $"You've been matched with job: {jobTitle}",
+                Data = new { JobId = jobId }
+            };
+            
+            await SendNotificationToUserAsync(userId, notification);
+        }
+
+        public async Task SendApplicationStatusNotification(string userId, string applicationId, string status)
+        {
+            var notification = new Notification
+            {
+                Type = NotificationType.ApplicationStatus,
+                Title = "Application Update",
+                Message = $"Your application status has changed to: {status}",
+                Data = new { ApplicationId = applicationId }
+            };
+            
+            await SendNotificationToUserAsync(userId, notification);
+        }
+
+        public async Task SendMessageNotification(string userId, string messageId, string senderName)
+        {
+            var notification = new Notification
+            {
+                Type = NotificationType.Message,
+                Title = $"New message from {senderName}",
+                Message = "You have a new message",
+                Data = new { MessageId = messageId }
+            };
+            
+            await SendNotificationToUserAsync(userId, notification);
+        }
+
+        public async Task SendRecommendationNotification(string userId, string recommendationText)
+        {
+            var notification = new Notification
+            {
+                Type = NotificationType.Recommendation,
+                Title = "New Recommendation",
+                Message = recommendationText,
+                Data = new { }
+            };
+            
+            await SendNotificationToUserAsync(userId, notification);
+        }
     }
-} 
+}
