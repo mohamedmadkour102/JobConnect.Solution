@@ -136,6 +136,7 @@ builder.Services.AddCors(options =>
     {
         "https://job-connect-pink.vercel.app",
         "http://localhost:3000",
+        "http://localhost:4200", // Angular
         "http://localhost:8081",
         "https://localhost:7231",
         "https://localhost:5173"
