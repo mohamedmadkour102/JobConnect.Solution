@@ -134,7 +134,9 @@ builder.Services.AddCors(options =>
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
     var defaultOrigins = new[]
     {
-        "https://job-connect-pink.vercel.app",
+
+
+    "https://job-connect-pink.vercel.app",
         "http://localhost:3000",
         "http://localhost:4200", // Angular
         "http://localhost:8081",
