@@ -23,9 +23,9 @@ namespace JobConnect.Apis.DTO_s.SeekerDto
         public string? CollegeName { get; set; } 
         public string? University { get; set; } 
 
-        public List<CertificationDto>? Certifications { get; set; } = new List<CertificationDto>();
-        public List<CompanyWorkedAtDto>? CompanyWorkedAt { get; set; } = new List<CompanyWorkedAtDto>();
-        public List<SkillDto>? Skills { get; set; } = new List<SkillDto>();
-        public List<WorkedAsDto>? WorkedAs { get; set; } = new List<WorkedAsDto>();
+        public List<CertificationDto>? Certifications { get; set; }
+        public List<CompanyWorkedAtDto>? CompanyWorkedAt { get; set; }
+        public List<SkillDto>? Skills { get; set; }
+        public List<WorkedAsDto>? WorkedAs { get; set; }
     }
 }
