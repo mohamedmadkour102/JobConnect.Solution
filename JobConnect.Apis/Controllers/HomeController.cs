@@ -341,6 +341,69 @@ namespace JobConnect.Apis.Controllers
         }
 
 
+        [HttpGet("GetJobById/{jobId}")]
+        public async Task<IActionResult> GetJobById(int jobId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching job details for ID: {JobId}", jobId);
+                
+                var job = await _context.Jobs
+                    .Include(j => j.Applications)
+                    .Include(j => j.Tags)
+                    .Include(j => j.Responsibilities)
+                    .Include(j => j.Employer)
+                    .FirstOrDefaultAsync(j => j.Id == jobId);
+                
+                if (job == null)
+                {
+                    _logger.LogWarning("Job with ID {JobId} not found", jobId);
+                    return NotFound(new { message = $"Job with ID {jobId} not found." });
+                }
+
+                var jobDto = new JobConnect.Apis.DTO_s.SeekerDto.JobDto
+                {
+                    Id = job.Id,
+                    Title = job.Title,
+                    Status = job.Status,
+                    ApplicationsCount = job.Applications.Count,
+                    JobType = job.JobType,
+                    WorkPlace = job.WorkPlace,
+                    DaysRemaining = CalculateDaysRemaining(job.ExpirationDate),
+                    PostedDate = GetTimeAgo(job.PostedDate),
+                    Location = job.Location,
+                    Description = job.Description,
+                    MinSalary = job.MinSalary,
+                    MaxSalary = job.MaxSalary,
+                    SalaryType = job.SalaryType,
+                    Education = job.Education,
+                    Experience = job.Experience,
+                    Vacancies = job.Vacancies,
+                    Responsibilities = job.Responsibilities.Select(r => r.Responsibility).ToList(),
+                    Tags = job.Tags.Select(t => t.Tag).ToList(),
+                    Employer = new JobConnect.Apis.DTO_s.SeekerDto.EmployerInfo
+                    {
+                        Id = job.Employer.Id,
+                        Name = $"{job.Employer.FirstName} {job.Employer.LastName}",
+                        Email = job.Employer.Email,
+                        CompanyName = job.Employer.CompanyName,
+                        CompanySize = job.Employer.CompanySize,
+                        FoundingDate = job.Employer.FoundingDate,
+                        Industry = job.Employer.Industry,
+                        LogoBase64 = string.IsNullOrEmpty(job.Employer.LogoUrl) ? null : job.Employer.LogoUrl
+                    }
+                };
+
+                _logger.LogInformation("Successfully retrieved job details for ID: {JobId}", jobId);
+                return Ok(new { message = "Job details retrieved successfully.", data = jobDto });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching job details for ID: {JobId}", jobId);
+                return StatusCode(500, new { message = "An error occurred while retrieving job details." });
+            }
+        }
+
         private int CalculateDaysRemaining(DateTime expirationDate)
         {
             int daysRemaining = (expirationDate - DateTime.UtcNow).Days;
