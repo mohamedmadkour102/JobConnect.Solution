@@ -240,101 +240,166 @@ namespace JobConnect.Apis.Controllers
             if (jobSeeker == null)
                 return NotFound(new { message = "JobSeeker not found." });
 
-            // Update scalar properties if explicitly provided (even empty strings)
-            if (updateDto.Address != null) jobSeeker.Address = updateDto.Address;
-            if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
-            if (updateDto.Degree != null) jobSeeker.Degree = updateDto.Degree;
-            if (updateDto.CurrentOrDesiredJob != null) jobSeeker.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
-            if (updateDto.Bio != null) jobSeeker.Bio = updateDto.Bio;
-            if (updateDto.CoverLetter != null) jobSeeker.CoverLetter = updateDto.CoverLetter;
-            if (updateDto.DateOfBirth.HasValue) jobSeeker.DateOfBirth = updateDto.DateOfBirth;
-            if (updateDto.Nationality != null) jobSeeker.Nationality = updateDto.Nationality;
-            if (updateDto.MaritalStatus != null) jobSeeker.MaritalStatus = updateDto.MaritalStatus;
-            if (updateDto.Gender != null) jobSeeker.Gender = updateDto.Gender;
-            if (updateDto.Education != null) jobSeeker.Education = updateDto.Education;
-            if (updateDto.Portfolio != null) jobSeeker.Portfolio = updateDto.Portfolio;
-            if (updateDto.FacebookLink != null) jobSeeker.FacebookLink = updateDto.FacebookLink;
-            if (updateDto.TwitterLink != null) jobSeeker.TwitterLink = updateDto.TwitterLink;
-            if (updateDto.InstagramLink != null) jobSeeker.InstagramLink = updateDto.InstagramLink;
-            if (updateDto.LinkedInLink != null) jobSeeker.LinkedInLink = updateDto.LinkedInLink;
-            if (updateDto.CollegeName != null) jobSeeker.CollegeName = updateDto.CollegeName;
-            if (updateDto.University != null) jobSeeker.University = updateDto.University;
-
-            // Sync Certifications if explicitly provided
-            if (updateDto.Certifications != null)
+            try
             {
-                jobSeeker.Certifications.Clear();
+                // Update scalar properties if explicitly provided (even empty strings)
+                if (updateDto.Address != null) jobSeeker.Address = updateDto.Address;
+                if (updateDto.YearsOfExperience.HasValue) jobSeeker.YearsOfExperience = updateDto.YearsOfExperience;
+                if (updateDto.Degree != null) jobSeeker.Degree = updateDto.Degree;
+                if (updateDto.CurrentOrDesiredJob != null) jobSeeker.CurrentOrDesiredJob = updateDto.CurrentOrDesiredJob;
+                if (updateDto.Bio != null) jobSeeker.Bio = updateDto.Bio;
+                if (updateDto.CoverLetter != null) jobSeeker.CoverLetter = updateDto.CoverLetter;
+                if (updateDto.DateOfBirth.HasValue) jobSeeker.DateOfBirth = updateDto.DateOfBirth;
+                if (updateDto.Nationality != null) jobSeeker.Nationality = updateDto.Nationality;
+                if (updateDto.MaritalStatus != null) jobSeeker.MaritalStatus = updateDto.MaritalStatus;
+                if (updateDto.Gender != null) jobSeeker.Gender = updateDto.Gender;
+                if (updateDto.Education != null) jobSeeker.Education = updateDto.Education;
+                if (updateDto.Portfolio != null) jobSeeker.Portfolio = updateDto.Portfolio;
+                if (updateDto.FacebookLink != null) jobSeeker.FacebookLink = updateDto.FacebookLink;
+                if (updateDto.TwitterLink != null) jobSeeker.TwitterLink = updateDto.TwitterLink;
+                if (updateDto.InstagramLink != null) jobSeeker.InstagramLink = updateDto.InstagramLink;
+                if (updateDto.LinkedInLink != null) jobSeeker.LinkedInLink = updateDto.LinkedInLink;
+                if (updateDto.CollegeName != null) jobSeeker.CollegeName = updateDto.CollegeName;
+                if (updateDto.University != null) jobSeeker.University = updateDto.University;
 
-                foreach (var c in updateDto.Certifications)
+                // Sync Certifications if explicitly provided
+                if (updateDto.Certifications != null)
                 {
-                    if (!string.IsNullOrEmpty(c.CertificationName))
+                    // Get existing certifications to track what needs to be removed
+                    var existingCertifications = jobSeeker.Certifications.ToList();
+                    var newCertifications = new List<JobSeekerCertification>();
+
+                    foreach (var c in updateDto.Certifications)
                     {
-                        jobSeeker.Certifications.Add(new JobSeekerCertification
+                        if (!string.IsNullOrEmpty(c.CertificationName))
                         {
-                            CertificationName = c.CertificationName,
-                            JobSeekerId = jobSeekerId
-                        });
+                            newCertifications.Add(new JobSeekerCertification
+                            {
+                                CertificationName = c.CertificationName,
+                                JobSeekerId = jobSeekerId
+                            });
+                        }
+                    }
+
+                    // Remove old certifications from context
+                    foreach (var cert in existingCertifications)
+                    {
+                        _context.Remove(cert);
+                    }
+
+                    // Add new certifications
+                    foreach (var cert in newCertifications)
+                    {
+                        jobSeeker.Certifications.Add(cert);
                     }
                 }
-            }
 
-            // Sync CompanyWorkedAt
-            if (updateDto.CompanyWorkedAt != null)
-            {
-                jobSeeker.CompanyWorkedAt.Clear();
-
-                foreach (var c in updateDto.CompanyWorkedAt)
+                // Sync CompanyWorkedAt
+                if (updateDto.CompanyWorkedAt != null)
                 {
-                    if (!string.IsNullOrEmpty(c.CompanyName))
+                    // Get existing companies to track what needs to be removed
+                    var existingCompanies = jobSeeker.CompanyWorkedAt.ToList();
+                    var newCompanies = new List<JobSeekerCompanyWorkedAt>();
+
+                    foreach (var c in updateDto.CompanyWorkedAt)
                     {
-                        jobSeeker.CompanyWorkedAt.Add(new JobSeekerCompanyWorkedAt
+                        if (!string.IsNullOrEmpty(c.CompanyName))
                         {
-                            CompanyName = c.CompanyName,
-                            JobSeekerId = jobSeekerId
-                        });
+                            newCompanies.Add(new JobSeekerCompanyWorkedAt
+                            {
+                                CompanyName = c.CompanyName,
+                                JobSeekerId = jobSeekerId
+                            });
+                        }
+                    }
+
+                    // Remove old companies from context
+                    foreach (var company in existingCompanies)
+                    {
+                        _context.Remove(company);
+                    }
+
+                    // Add new companies
+                    foreach (var company in newCompanies)
+                    {
+                        jobSeeker.CompanyWorkedAt.Add(company);
                     }
                 }
-            }
 
-            // Sync Skills
-            if (updateDto.Skills != null)
-            {
-                jobSeeker.Skills.Clear();
-
-                foreach (var s in updateDto.Skills)
+                // Sync Skills
+                if (updateDto.Skills != null)
                 {
-                    if (!string.IsNullOrEmpty(s.SkillName))
+                    // Get existing skills to track what needs to be removed
+                    var existingSkills = jobSeeker.Skills.ToList();
+                    var newSkills = new List<JobSeekerSkill>();
+
+                    foreach (var s in updateDto.Skills)
                     {
-                        jobSeeker.Skills.Add(new JobSeekerSkill
+                        if (!string.IsNullOrEmpty(s.SkillName))
                         {
-                            SkillName = s.SkillName,
-                            JobSeekerId = jobSeekerId
-                        });
+                            newSkills.Add(new JobSeekerSkill
+                            {
+                                SkillName = s.SkillName,
+                                JobSeekerId = jobSeekerId
+                            });
+                        }
+                    }
+
+                    // Remove old skills from context
+                    foreach (var skill in existingSkills)
+                    {
+                        _context.Remove(skill);
+                    }
+
+                    // Add new skills
+                    foreach (var skill in newSkills)
+                    {
+                        jobSeeker.Skills.Add(skill);
                     }
                 }
-            }
 
-            // Sync WorkedAs
-            if (updateDto.WorkedAs != null)
-            {
-                jobSeeker.WorkedAs.Clear();
-
-                foreach (var w in updateDto.WorkedAs)
+                // Sync WorkedAs
+                if (updateDto.WorkedAs != null)
                 {
-                    if (!string.IsNullOrEmpty(w.JobTitle))
+                    // Get existing worked as entries to track what needs to be removed
+                    var existingWorkedAs = jobSeeker.WorkedAs.ToList();
+                    var newWorkedAs = new List<JobSeekerWorkedAs>();
+
+                    foreach (var w in updateDto.WorkedAs)
                     {
-                        jobSeeker.WorkedAs.Add(new JobSeekerWorkedAs
+                        if (!string.IsNullOrEmpty(w.JobTitle))
                         {
-                            JobTitle = w.JobTitle,
-                            JobSeekerId = jobSeekerId
-                        });
+                            newWorkedAs.Add(new JobSeekerWorkedAs
+                            {
+                                JobTitle = w.JobTitle,
+                                JobSeekerId = jobSeekerId
+                            });
+                        }
+                    }
+
+                    // Remove old worked as entries from context
+                    foreach (var workedAs in existingWorkedAs)
+                    {
+                        _context.Remove(workedAs);
+                    }
+
+                    // Add new worked as entries
+                    foreach (var workedAs in newWorkedAs)
+                    {
+                        jobSeeker.WorkedAs.Add(workedAs);
                     }
                 }
+
+                // Save all changes
+                await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Profile updated successfully." });
             }
-
-            await _jobSeekerService.UpdateJobSeekerAsync(jobSeeker);
-
-            return Ok(new { message = "Profile updated successfully." });
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = $"Failed to update profile: {ex.Message}" });
+            }
         }
 
         [HttpDelete("DeleteSeekerProfile")]
