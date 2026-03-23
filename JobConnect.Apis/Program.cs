@@ -1,28 +1,18 @@
-using JobConnect.Core.Models;
-using JobConnect.Core.Services;
-using JobConnect.Repository.Data;
-using JobConnect.Apis;
+using JobConnect.Application;
+using JobConnect.Domain.Entities;
+using JobConnect.Infrastructure;
+using JobConnect.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using JobConnect.Services;
-using JobConnect.Apis.IRepository;
-using JobConnect.Apis.Repository;
-using JobConnect.Apis.IService;
-using Microsoft.AspNetCore.Diagnostics;
-using System.Text.Json;
-using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
-using JobConnect.Apis.Services;
-using JobConnect.Apis.Helpers;
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
-using JobConnect.Core.IService;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Logging.ClearProviders();
@@ -56,52 +46,17 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null));
-});
-//var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
-
-
-//if (!File.Exists(firebaseCredentialsPath))
-//{
-//    throw new FileNotFoundException("Firebase credentials file not found.", firebaseCredentialsPath);
-//}
-
-
-//FirebaseApp.Create(new AppOptions
-//{
-//    Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
-//});
-builder.Services.AddScoped<ITokenServices, TokenServices>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IEmployerService, EmployerService>();
-builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
-builder.Services.AddScoped<IJobSeekerRepository, JobSeekerRepository>();
-builder.Services.AddScoped<IJobSeekerService, JobSeekerService>();
-builder.Services.AddScoped<IAdminRepository, AdminRepository>();
-builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
-builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<JobMatchingService>();
-builder.Services.AddHttpClient();
-
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 
 builder.Services.AddIdentity<User, IdentityRole>()
-        .AddEntityFrameworkStores<AppDbContext>()
-        .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -119,11 +74,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
-
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddCors(options =>
 {
@@ -143,8 +96,8 @@ builder.Services.AddCors(options =>
             var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
             return allAllowedOrigins.Any(o =>
                 origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
-                (o.StartsWith("*") &&
-                 origin.EndsWith(o.Substring(1), StringComparison.OrdinalIgnoreCase)));
+                (o.StartsWith("*", StringComparison.Ordinal) &&
+                 origin.EndsWith(o[1..], StringComparison.OrdinalIgnoreCase)));
         })
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -169,18 +122,21 @@ app.UseExceptionHandler(errorApp =>
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         var error = exceptionHandlerPathFeature?.Error;
         logger.LogError(error, "Unhandled exception occurred");
-        var errorDetails = new
+
+        var isDev = app.Environment.IsDevelopment();
+        var errorDetails = new Dictionary<string, object?>
         {
-            Message = "Internal server error",
-            Exception = error?.Message,
-            StackTrace = error?.StackTrace,
-            Path = exceptionHandlerPathFeature?.Path,
-            InnerException = error?.InnerException?.Message
+            ["Message"] = "Internal server error",
+            ["Path"] = exceptionHandlerPathFeature?.Path
         };
-        var errorJson = JsonSerializer.Serialize(errorDetails, new JsonSerializerOptions
+        if (isDev && error != null)
         {
-            WriteIndented = true
-        });
+            errorDetails["Exception"] = error.Message;
+            errorDetails["StackTrace"] = error.StackTrace;
+            errorDetails["InnerException"] = error.InnerException?.Message;
+        }
+
+        var errorJson = JsonSerializer.Serialize(errorDetails, new JsonSerializerOptions { WriteIndented = true });
         await context.Response.WriteAsync(errorJson);
     });
 });
@@ -189,9 +145,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-   // c.RoutePrefix = string.Empty;
     c.RoutePrefix = "Swagger";
-
 });
 
 app.UseStaticFiles();

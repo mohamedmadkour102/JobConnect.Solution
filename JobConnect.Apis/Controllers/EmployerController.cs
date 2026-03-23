@@ -1,5 +1,5 @@
-﻿using JobConnect.Apis.DTO_s.EmployerDto;
-using JobConnect.Apis.IService;
+using JobConnect.Application.Abstractions;
+using JobConnect.Application.DTOs.EmployerDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

@@ -1,7 +1,6 @@
-﻿using JobConnect.Apis.DTO_s;
-using JobConnect.Apis.Services;
-using JobConnect.Core.Models;
-using JobConnect.Core.Services;
+using JobConnect.Application.Abstractions;
+using JobConnect.Application.DTOs;
+using JobConnect.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

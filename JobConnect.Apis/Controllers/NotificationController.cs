@@ -1,6 +1,6 @@
-using JobConnect.Apis.DTO_s;
-using JobConnect.Core.IService;
-using JobConnect.Core.Models;
+using JobConnect.Application.Abstractions;
+using JobConnect.Application.DTOs;
+using JobConnect.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

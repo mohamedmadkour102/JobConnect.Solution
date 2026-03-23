@@ -1,12 +1,10 @@
-﻿using JobConnect.Apis.DTO_s.SeekerDto;
-using JobConnect.Apis.IService;
+using JobConnect.Application.Abstractions;
+using JobConnect.Application.DTOs.SeekerDto;
+using JobConnect.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using JobConnect.Apis.Helpers;
-using JobConnect.Core.Models;
-using Microsoft.EntityFrameworkCore;
-using JobConnect.Repository.Data;
 
 namespace JobConnect.Apis.Controllers
 {
@@ -17,13 +15,11 @@ namespace JobConnect.Apis.Controllers
     {
         private readonly IJobSeekerService _jobSeekerService;
         private readonly IWebHostEnvironment _environment;
-        private readonly AppDbContext _context;
 
-        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment , AppDbContext context)
+        public JobSeekerController(IJobSeekerService jobSeekerService, IWebHostEnvironment environment)
         {
             _jobSeekerService = jobSeekerService;
             _environment = environment;
-            _context = context;
         }
 
         [HttpGet("GetSavedJobs")]
