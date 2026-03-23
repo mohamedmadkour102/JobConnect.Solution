@@ -1,102 +1,177 @@
-using JobConnect.Core.Models;
-using JobConnect.Core.Services;
-using JobConnect.Repository.Data;
-using JobConnect.Apis;
+using JobConnect.Application;
+using JobConnect.Domain.Entities;
+using JobConnect.Infrastructure;
+using JobConnect.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using JobConnect.Services;
-using JobConnect.Apis.IRepository;
-using JobConnect.Apis.Repository;
-using JobConnect.Apis.IService;
-using JobConnect.Apis.Services.JobService;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-#region DI
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Host.ConfigureLogging(logging =>
 {
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 });
 
-builder.Services.AddScoped<ITokenServices, TokenServices>();
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IJobRepository , JobRepository>();
-builder.Services.AddScoped<IJobService , JobService>();
-#endregion
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "JobConnect API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token in the format: Bearer {token}"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
-#region Identity
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
+
 builder.Services.AddIdentity<User, IdentityRole>()
-	.AddEntityFrameworkStores<AppDbContext>()
-	.AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer();
-#endregion
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
 
-#region EmailSettings
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-#endregion
+builder.Services.AddCors(options =>
+{
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+    var defaultOrigins = new[]
+    {
+        "https://job-connect-pink.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:8081",
+        "https://localhost:7231",
+        "https://localhost:5173"
+    };
+    options.AddPolicy("AllowVercel", policy =>
+    {
+        policy.SetIsOriginAllowed(origin =>
+        {
+            var allAllowedOrigins = allowedOrigins.Concat(defaultOrigins).Distinct();
+            return allAllowedOrigins.Any(o =>
+                origin.Equals(o, StringComparison.OrdinalIgnoreCase) ||
+                (o.StartsWith("*", StringComparison.Ordinal) &&
+                 origin.EndsWith(o[1..], StringComparison.OrdinalIgnoreCase)));
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
-// Migrate database and seed default user
-#region Migration
-using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-var _dbContext = services.GetRequiredService<AppDbContext>();
-
-var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-
-try
+if (app.Environment.IsDevelopment())
 {
-	await _dbContext.Database.MigrateAsync();
-	var userManager = services.GetRequiredService<UserManager<User>>();
-	await AppDbContextSeed.SeedUserAsync(userManager);
+    app.UseDeveloperExceptionPage();
 }
-catch (Exception ex)
-{
-	var logger = loggerFactory.CreateLogger<Program>();
-	logger.LogError(ex, "An error occurred while applying the migration");
-}
-#endregion
 
-// Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-// 	app.UseSwagger();
-// 	app.UseSwaggerUI();
-// }
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        var error = exceptionHandlerPathFeature?.Error;
+        logger.LogError(error, "Unhandled exception occurred");
+
+        var isDev = app.Environment.IsDevelopment();
+        var errorDetails = new Dictionary<string, object?>
+        {
+            ["Message"] = "Internal server error",
+            ["Path"] = exceptionHandlerPathFeature?.Path
+        };
+        if (isDev && error != null)
+        {
+            errorDetails["Exception"] = error.Message;
+            errorDetails["StackTrace"] = error.StackTrace;
+            errorDetails["InnerException"] = error.InnerException?.Message;
+        }
+
+        var errorJson = JsonSerializer.Serialize(errorDetails, new JsonSerializerOptions { WriteIndented = true });
+        await context.Response.WriteAsync(errorJson);
+    });
+});
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobConnect API V1");
-    c.RoutePrefix = string.Empty; // shows Swagger UI at root
+    c.RoutePrefix = "Swagger";
 });
 
-//if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
-//{
-//	app.UseSwagger();
-//	app.UseSwaggerUI(options =>
-//	{
-//		options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-//		options.RoutePrefix = string.Empty; // ���� Swagger �� ������ ������� (�������)
-//	});
-//}
-
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
-
+app.UseCors("AllowVercel");
+app.UseAuthentication();
 app.UseAuthorization();
 
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        await DataSeeder.SeedAdmin(userManager, roleManager);
+        await DataSeeder.SeedJobs(dbContext, userManager);
+        await DataSeeder.SeedJobTags(dbContext);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error occurred during database seeding");
+    }
+}
+
 app.MapControllers();
-
 app.Run();
-
